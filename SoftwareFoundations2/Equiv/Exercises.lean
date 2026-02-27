@@ -144,34 +144,6 @@ theorem identity_assignment :
     apply EAsgn rfl
     simp only [AExp.eval, State.set_id]
 
-theorem skip_right : ⟨{ ↑c; skip }⟩ ≃ ⟨{ ↑c }⟩ := by
-  -- FILL IN HERE
-  sorry
-
-theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
-  ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ ↑c₂ }⟩ := by
-  -- FILL IN HERE
-  sorry
-
-theorem swap_if_branches :
-    ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃
-    ⟨{ if !↑b then ↑c₂ else ↑c₁ endif }⟩ := by
-  -- FILL IN HERE
-  sorry
-
-theorem true_while
-  (h : b ≃ bexp⟨{ btrue }⟩) :
-  ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while btrue do skip od }⟩ := by
-  -- FILL IN HERE
-  -- Hint: You'll want to use `true_while_nonterm` here.
-  sorry
-
-theorem assign_aequiv
-  (h : aexp⟨{ x }⟩ ≃ a ) :
-  ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
-  -- FILL IN HERE
-  sorry
-
 set_option warn.sorry false in
 theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)

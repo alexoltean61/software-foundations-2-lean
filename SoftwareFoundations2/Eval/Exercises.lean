@@ -21,12 +21,3 @@ theorem ceval_example1 :
       · rfl
       · simp only [AExp.eval]
         grind
-
-theorem ceval_example2 :
-  σ =[
-    x = 0;
-    y = 1;
-    z = 2
-  ]=> σ["z"↦2]["y"↦1]["x"↦0] := by
-  -- FILL IN HERE
-  sorry
