@@ -1,13 +1,12 @@
-# software-foundations-2
+# Software Foundations V2 in Lean
 
-## GitHub configuration
+Welcome! This repository focuses on porting [Software Foundations Vol. 2: Programming Language Foundations](https://softwarefoundations.cis.upenn.edu/plf-current/index.html), to [Lean 4](https://lean-lang.org/).
 
-To set up your new GitHub repository, follow these steps:
+We do this as lab work for the **Program Verification** master's course at the [Faculty of Mathematics & Computer Science, Univ. of Bucharest](https://fmi.unibuc.ro/).
 
-* Under your repository name, click **Settings**.
-* In the **Actions** section of the sidebar, click "General".
-* Check the box **Allow GitHub Actions to create and approve pull requests**.
-* Click the **Pages** section of the settings sidebar.
-* In the **Source** dropdown menu, select "GitHub Actions".
+### Building
+Before you start, make sure you have [Lean installed](https://lean-lang.org/install/) in your environment.
 
-After following the steps above, you can remove this section from the README file.
+1. Clone this repository.
+2. From your cloned directory, run `lake exe cache get`. This will fetch a compressed version of the `Mathlib` library, which would normally be huge.
+3. Run `lake build`.
