@@ -22,11 +22,12 @@ theorem ceval_example1 :
       · simp only [AExp.eval]
         grind
 
+set_option warn.sorry false in
 theorem ceval_example2 :
   σ =[
     x = 0;
     y = 1;
     z = 2
   ]=> σ["z"↦2]["y"↦1]["x"↦0] := by
-  -- FILL IN HERE
+  -- FILL IN HERE (optional: PR will pass without it)
   sorry
