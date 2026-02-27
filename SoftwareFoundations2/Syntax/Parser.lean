@@ -11,9 +11,9 @@ def identToString : Syntax → String := fun stx => stx.getId.toString
 
 syntax num   : aexp
 syntax ident : aexp
-syntax aexp " + " aexp : aexp
-syntax aexp " - " aexp : aexp
-syntax aexp " * " aexp : aexp
+syntax:40 aexp:40 " + " aexp:(39) : aexp
+syntax:40 aexp:40 " - " aexp:(39) : aexp
+syntax:50 aexp:50 " * " aexp:(49) : aexp
 syntax "(" aexp ")" : aexp
 syntax "↑"term:arg : aexp
 
@@ -36,6 +36,7 @@ syntax "if " bexp " then " com " else " com " endif" : com
 syntax "while " bexp " do " com " od" : com
 syntax "{ " com " }" : com
 syntax "{ " " }" : com
+syntax "↑"term:arg " = " aexp : com
 syntax "↑"term:arg : com
 
 partial def elabAExp : Syntax → TermElabM Expr
@@ -88,6 +89,9 @@ partial def elabCom : Syntax → TermElabM Expr
   | `(com| { $c })                        => elabCom c
   | `(com| { })                           =>
         return .const ``Com.CSkip []
+  | `(com| ↑$t:term = $a)                       => do
+        let e ← elabTerm t (some (.const `Var []))
+        return mkAppN (.const ``Com.CAsgn  []) #[e, ← elabAExp a]
   | `(com| ↑$t:term)                       => do
         let e ← elabTerm t (some (.const `Com []))
         return e
