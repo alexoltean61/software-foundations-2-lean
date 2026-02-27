@@ -31,3 +31,9 @@ theorem State.set_comm {xn yn : Nat} (h : x ≠ y) : σ[x ↦ xn][y ↦ yn] = σ
   unfold State.set
   funext str
   grind
+
+@[grind =]
+theorem State.set_id : σ[x ↦ σ x] = σ := by
+  unfold State.set
+  funext str
+  grind
