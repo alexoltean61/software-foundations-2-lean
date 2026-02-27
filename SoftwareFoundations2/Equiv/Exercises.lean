@@ -166,12 +166,13 @@ theorem true_while
   -- Hint: You'll want to use `true_while_nonterm` here.
   sorry
 
-theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
-  -- FILL IN HERE (optional)
-  sorry
-
 theorem assign_aequiv
   (h : aexp⟨{ x }⟩ ≃ a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
   -- FILL IN HERE
+  sorry
+
+set_option warn.sorry false in
+theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
+  -- FILL IN HERE (optional: PR will pass without it)
   sorry
