@@ -27,19 +27,11 @@ def BExp.eval (σ : State) : BExp → Bool
     This means that for some commands it is provided as input,
     it may run forever and fail to return a final state.
 
-    (Consider, for example, the command `while btrue do skip od`. Try to execute
-    `Com.eval` on this command and see what happens.)
-
-    The issue is that, mathematically, functions must be **total**: they must map **every** value
-    in their domain to a definite value in their codomain.
-    Accordingly, in Lean, we can't use partial functions in proofs; they do not correspond to a
-    well-defined mathematical object.
-
     We use the definition below only for debugging. It's basically a really simple interpreter for
     IMP: pass in a command and an initial state, and it will execute the command and (if it
     terminates) yield the final state. Feel free to play with it!
 
-    But to prove properties about IMP commands, we will provide a new definition shortly.
+    To prove properties about IMP commands, we will provide a new definition shortly.
     The new definition will be given as a *relation* between states, commands and states;
     not as a *function*.
 -/
@@ -69,7 +61,10 @@ def Com.getOutput (c : Com) (σ : State) : List (Var × Nat) :=
 
 open Com
 
-/-- Big-step evaluation relation. -/
+/-- Big-step evaluation relation: the type `ComEval σ com σ'` is that of *proofs* that evaluating
+    command `com` from starting state `σ` yields final state `σ'`.
+
+    Each constructor stands for a possible way of building this proof. -/
 inductive ComEval : State → Com → State → Prop where
   | ESkip :
         ComEval σ CSkip σ
