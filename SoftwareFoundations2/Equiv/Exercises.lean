@@ -118,7 +118,6 @@ theorem identity_assignment :
     simp only [AExp.eval, State.set_id]
 
 theorem skip_right : ⟨{ ↑c; skip }⟩ ≃ ⟨{ ↑c }⟩ := by
-  -- FILL IN HERE
   intro σ σ'
   apply Iff.intro
   · intro h
@@ -153,8 +152,32 @@ theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
 theorem swap_if_branches :
     ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃
     ⟨{ if !↑b then ↑c₂ else ↑c₁ endif }⟩ := by
-  -- FILL IN HERE
-  sorry
+  intro h p
+  apply Iff.intro
+  · intro q
+    cases q with
+    | EIfTrue x y =>
+        apply EIfFalse
+        simp
+        exact x
+        exact y
+    | EIfFalse x y =>
+      apply EIfTrue
+      simp
+      exact x
+      exact y
+  · intro q
+    cases q with
+    | EIfTrue x y =>
+        apply EIfFalse
+        simp at x
+        exact x
+        exact y
+    | EIfFalse x y =>
+        apply EIfTrue
+        simp at x
+        exact x
+        exact y
 
 theorem true_while
   (h : b ≃ bexp⟨{ btrue }⟩) :
