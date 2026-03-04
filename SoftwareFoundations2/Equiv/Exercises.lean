@@ -119,7 +119,19 @@ theorem identity_assignment :
 
 theorem skip_right : ⟨{ ↑c; skip }⟩ ≃ ⟨{ ↑c }⟩ := by
   -- FILL IN HERE
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  · intro h
+    cases h with
+    | ESeq h1 h2 =>
+        cases h2
+        exact h1
+  · intro h
+    apply ESeq
+    case mpr.σ' => exact σ'
+    case mpr.a => exact h
+    case mpr.a => apply ESkip
+
 
 theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ ↑c₂ }⟩ := by
