@@ -245,7 +245,16 @@ theorem equiv_refl : c ≃ c := by
 @[trans]
 theorem equiv_trans : c₁ ≃ c₂ → c₂ ≃ c₃ → c₁ ≃ c₃ := by
   -- FILL IN HERE
-  sorry
+  intro h p q r
+  apply Iff.intro
+  · intro s
+    rw [h] at s
+    rw [p] at s
+    exact s
+  · intro s
+    rw [← p] at s
+    rw [← h] at s
+    exact s
 
 @[symm]
 theorem equiv_symm : c₁ ≃ c₂ → c₂ ≃ c₁ := by
