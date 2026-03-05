@@ -205,13 +205,28 @@ theorem true_while
     apply true_while_nonterm at r
     cases r
     simp
-  -- Hint: You'll want to use `true_while_nonterm` here.
 
 theorem assign_aequiv
   (h : aexp⟨{ x }⟩ ≃ a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
-  -- FILL IN HERE
-  sorry
+  intro p q
+  apply Iff.intro
+  · intro r
+    cases r with
+    | EAsgn c d =>
+        rw [← h] at c
+        simp at c
+        rw [c] at d
+        rw [State.set_id] at d
+        rw [d]
+        apply ESkip
+  · intro r
+    apply EAsgn
+    rw [← h]
+    simp
+    rw [State.set_id]
+    cases r with
+    | ESkip => rfl
 
 set_option warn.sorry false in
 theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
