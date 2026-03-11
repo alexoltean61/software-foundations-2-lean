@@ -308,11 +308,25 @@ theorem equiv_congr_asgn {a₁ a₂ : AExp} (h : a₁ ≃ a₂) :
         apply EAsgn q1
         exact q2
 
-set_option warn.sorry false in
 theorem equiv_congr_seqL (h : c₁ ≃ c₁') :
   ⟨{ ↑c₁; ↑c₂ }⟩ ≃ ⟨{ ↑c₁'; ↑c₂ }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
-  sorry
+  intro p q
+  apply Iff.intro
+  · intro r
+    cases r with
+    | ESeq q1 q2 =>
+        apply ESeq
+        rw [h] at q1
+        apply q1
+        exact q2
+  · intro r
+    cases r with
+    | ESeq q1 q2 =>
+        rw [← h] at q1
+        apply ESeq
+        apply q1
+        exact q2
 
 set_option warn.sorry false in
 theorem equiv_congr_seqR (h : c₂ ≃ c₂') :
