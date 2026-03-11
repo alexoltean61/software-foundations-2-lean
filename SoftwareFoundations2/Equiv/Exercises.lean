@@ -1,3 +1,4 @@
+
 import SoftwareFoundations2.Equiv.Def
 
 open ComEval
@@ -203,7 +204,8 @@ theorem true_while
       contradiction
   · intro r
     apply true_while_nonterm at r
-    cases r
+    exfalso
+    exact r
     simp
 
 theorem assign_aequiv
@@ -228,13 +230,29 @@ theorem assign_aequiv
     cases r with
     | ESkip => rfl
 
-set_option warn.sorry false in
 theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
-  sorry
+  intro h p
+  apply Iff.intro
+  · intro q
+    cases q with
+    | ESeq q1 q2 =>
+        cases q1 with
+        | ESeq q1 q1' =>
+            apply ESeq q1
+            apply ESeq q1'
+            exact q2
+  · intro q
+    cases q with
+    | ESeq q1 q2 =>
+        cases q2 with
+        | ESeq q2 q2' =>
+            apply ESeq
+            apply ESeq q1
+            apply q2
+            exact q2'
 
 @[refl]
 theorem equiv_refl : c ≃ c := by
-  -- FILL IN HERE
   intro h p
   apply Iff.intro
   · intro r
@@ -244,7 +262,6 @@ theorem equiv_refl : c ≃ c := by
 
 @[trans]
 theorem equiv_trans : c₁ ≃ c₂ → c₂ ≃ c₃ → c₁ ≃ c₃ := by
-  -- FILL IN HERE
   intro h p q r
   apply Iff.intro
   · intro s
@@ -258,13 +275,26 @@ theorem equiv_trans : c₁ ≃ c₂ → c₂ ≃ c₃ → c₁ ≃ c₃ := by
 
 @[symm]
 theorem equiv_symm : c₁ ≃ c₂ → c₂ ≃ c₁ := by
-  -- FILL IN HERE
-  sorry
+  intro h p q
+  apply Iff.intro
+  · intro r
+    rw [← h] at r
+    exact r
+  · intro r
+    rw [h] at r
+    exact r
 
 set_option warn.sorry false in
 theorem equiv_congr_asgn {a₁ a₂ : AExp} (h : a₁ ≃ a₂) :
   ⟨{ ↑x = a₁ }⟩ ≃ ⟨{ ↑x = a₂ }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
+  simp
+  intro p q
+  apply Iff.intro
+  · intro r
+    cases r with
+    | EAsgn q1 q2 =>
+
   sorry
 
 set_option warn.sorry false in
