@@ -29,4 +29,15 @@ theorem ceval_example2 :
     z = 2
   ]=> σ["z"↦2]["y"↦1]["x"↦0] := by
   -- FILL IN HERE
-  sorry
+  apply ESeq
+  · apply EAsgn
+    · rfl
+    · rfl
+  · apply ESeq
+    · apply EAsgn
+      · rfl
+      · rfl
+    · apply EAsgn
+      · rfl
+      · simp
+        grind
