@@ -405,11 +405,24 @@ theorem equiv_congr_if (h₁ : c₁ ≃ c₁') (h₂ : c₂ ≃ c₂') :
               exact q1
               rw [← h₂] at q2
               exact q2
-    
+
 set_option warn.sorry false in
 theorem bequiv_congr_while (h : b ≃ b') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b' do ↑c od }⟩ := by
-  -- FILL IN HERE (optional: PR will pass without it)
+  intro p q
+  apply Iff.intro
+  · intro r
+    cases r with
+    | EWhileFalse q1 =>
+      apply EWhileFalse
+      rw [h] at q1
+      exact q1
+    | EWhileTrue q1 q2 q3 =>
+      apply EWhileTrue
+      rw [h] at q1
+      exact q1
+      apply q2
+      sorry
   sorry
 
 set_option warn.sorry false in
