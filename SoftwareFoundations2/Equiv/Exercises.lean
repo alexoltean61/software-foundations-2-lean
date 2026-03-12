@@ -377,12 +377,35 @@ theorem bequiv_congr_if (h : b ≃ b') :
         exact q1
         exact q2
 
-set_option warn.sorry false in
 theorem equiv_congr_if (h₁ : c₁ ≃ c₁') (h₂ : c₂ ≃ c₂') :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ if ↑b then ↑c₁' else ↑c₂' endif }⟩ := by
-  -- FILL IN HERE (optional: PR will pass without it)
-  sorry
-
+  intro p q
+  apply Iff.intro
+  · intro r
+    cases r with
+    | EIfTrue q1 q2 =>
+              apply EIfTrue
+              exact q1
+              rw [h₁] at q2
+              exact q2
+    | EIfFalse q1 q2 =>
+              apply EIfFalse
+              exact q1
+              rw [h₂] at q2
+              exact q2
+  · intro r
+    cases r with
+    | EIfTrue q1 q2 =>
+              apply EIfTrue
+              exact q1
+              rw [← h₁] at q2
+              exact q2
+    | EIfFalse q1 q2 =>
+              apply EIfFalse
+              exact q1
+              rw [← h₂] at q2
+              exact q2
+    
 set_option warn.sorry false in
 theorem bequiv_congr_while (h : b ≃ b') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b' do ↑c od }⟩ := by
