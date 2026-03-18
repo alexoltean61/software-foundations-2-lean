@@ -199,7 +199,7 @@ theorem true_while
     contradiction
 
 theorem assign_aequiv
-  (h : aexp⟨{ x }⟩ ≃ a ) :
+  (h : aexp⟨{ x }⟩ ≃ ↑a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
   -- FILL IN HERE
   intro σ σ'
