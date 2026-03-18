@@ -119,63 +119,184 @@ theorem identity_assignment :
 
 theorem skip_right : ⟨{ ↑c; skip }⟩ ≃ ⟨{ ↑c }⟩ := by
   -- FILL IN HERE
-  sorry
+  intros σ σ'
+  apply Iff.intro
+  intros h
+  cases h with
+  | ESeq h1 h2 =>
+    cases h2
+    exact h1
+  intros h
+  apply ESeq
+  · exact h
+  apply ESkip
+
 
 theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ ↑c₂ }⟩ := by
-  -- FILL IN HERE
-  sorry
+
+-- afjlla
+  intro σ σ'
+  specialize h σ
+  rw [BExp.eval] at h
+  apply Iff.intro
+  intros h1
+  cases h1 with
+  | EIfTrue h2 h3 =>
+    rw [h] at h2
+    contradiction
+  | EIfFalse h2 h3 =>
+    exact h3
+  intros h1
+  apply EIfFalse
+  apply h
+  exact h1
+
 
 theorem swap_if_branches :
     ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃
     ⟨{ if !↑b then ↑c₂ else ↑c₁ endif }⟩ := by
   -- FILL IN HERE
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  intros h1
+  cases h1 with
+  | EIfTrue h2 h3 =>
+    apply EIfFalse
+    rw [BExp.eval, h2]
+    trivial
+    exact h3
+  | EIfFalse h2 h3 =>
+    apply EIfTrue
+    rw [BExp.eval, h2]
+    trivial
+    exact h3
+  intros h1
+  cases h1 with
+  | EIfTrue h2 h3 =>
+    apply EIfFalse
+    rw [BExp.eval] at h2
+    rw [Bool.not_eq_eq_eq_not, Bool.not_true] at h2
+    exact h2
+    exact h3
+  | EIfFalse h2 h3 =>
+    apply EIfTrue
+    rw [BExp.eval] at h2
+    simp at h2
+    exact h2
+    exact h3
+
 
 theorem true_while
   (h : b ≃ bexp⟨{ btrue }⟩) :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while btrue do skip od }⟩ := by
   -- FILL IN HERE
   -- Hint: You'll want to use `true_while_nonterm` here.
+  intros σ σ'
+  apply Iff.intro
+  intros h1
+  apply true_while_nonterm at h
+  contradiction
+  intros h1
+  apply true_while_nonterm at h
+
   sorry
+  repeat trivial
+
+
 
 theorem assign_aequiv
   (h : aexp⟨{ x }⟩ ≃ a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
-  -- FILL IN HERE
-  sorry
+  intros σ σ'
+  apply Iff.intro
+  intros h1
+  cases h1 with
+  | EAsgn h2 h3 =>
+    specialize h σ
+    rw [← h] at h2
+    rw [h2] at h3
+    rw [AExp.eval] at h3
+    rw [State.set_id] at h3
+    rw [h3]
+    apply ESkip
+  intros h1
+  cases h1 with
+  | ESkip =>
+    apply EAsgn
+    trivial
+    rw [← h]
+    rw [AExp.eval]
+    rw [State.set_id]
 
-set_option warn.sorry false in
-theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
-  -- FILL IN HERE (optional: PR will pass without it)
-  sorry
-
-@[refl]
 theorem equiv_refl : c ≃ c := by
-  -- FILL IN HERE
-  sorry
+  intros σ σ'
+  rfl
 
 @[trans]
 theorem equiv_trans : c₁ ≃ c₂ → c₂ ≃ c₃ → c₁ ≃ c₃ := by
   -- FILL IN HERE
-  sorry
+  intros h1
+  intros h2
+  intros σ σ'
+  specialize h1 σ σ'
+  specialize h2 σ σ'
+  apply Iff.trans h1 h2
 
 @[symm]
 theorem equiv_symm : c₁ ≃ c₂ → c₂ ≃ c₁ := by
   -- FILL IN HERE
-  sorry
+  intros h1
+  intros σ σ'
+  specialize h1 σ σ'
+  apply Iff.symm
+  exact h1
 
 set_option warn.sorry false in
 theorem equiv_congr_asgn {a₁ a₂ : AExp} (h : a₁ ≃ a₂) :
-  ⟨{ ↑x = a₁ }⟩ ≃ ⟨{ ↑x = a₂ }⟩ := by
+  ⟨{ ↑x = ↑a₁ }⟩ ≃ ⟨{ ↑x = ↑a₂ }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
-  sorry
+  intros σ σ'
+  specialize h σ
+  apply Iff.intro
+  intros h1
+  apply EAsgn
+  rw [← h]
+  cases h1 with
+  | EAsgn h2 h3 =>
+    rw [h2] at h3
+    exact h3
+  intros h1
+  apply EAsgn
+  rw [h]
+  cases h1 with
+  | EAsgn h2 h3 =>
+    rw [h2] at h3
+    assumption
 
 set_option warn.sorry false in
 theorem equiv_congr_seqL (h : c₁ ≃ c₁') :
   ⟨{ ↑c₁; ↑c₂ }⟩ ≃ ⟨{ ↑c₁'; ↑c₂ }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
-  sorry
+  intros σ σ'
+  specialize h σ
+  apply Iff.intro
+  intros h1
+  cases h1 with
+  | @ESeq _ _ σ'' _ _ h2 h3 =>
+    apply ESeq
+    · specialize h σ''
+      apply Iff.mp h
+      exact h2
+    apply h3
+  intros h1
+  cases h1 with
+  | @ESeq _ _ σ'' _ _ h2 h3 =>
+    apply ESeq
+    · specialize h σ''
+      apply Iff.mpr h
+      apply h2
+    apply h3
 
 set_option warn.sorry false in
 theorem equiv_congr_seqR (h : c₂ ≃ c₂') :
@@ -186,7 +307,38 @@ set_option warn.sorry false in
 theorem bequiv_congr_if (h : b ≃ b') :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ if ↑b' then ↑c₁ else ↑c₂ endif }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
-  sorry
+  intros σ σ'
+  apply Iff.intro
+  intros h1
+  cases h1 with
+  | EIfTrue h2 h3 =>
+      apply EIfTrue
+      · specialize h σ
+        rw [h2] at h
+        symm at h
+        exact h
+      exact h3
+  | EIfFalse h2 h3 =>
+      apply EIfFalse
+      · specialize h σ
+        rw [h2] at h
+        symm
+        exact h
+      exact h3
+  intros h1
+  cases h1 with
+  | EIfTrue h2 h3 =>
+      apply EIfTrue
+      · specialize h σ
+        rw [h2] at h
+        exact h
+      exact h3
+  | EIfFalse h2 h3 =>
+      apply EIfFalse
+      · specialize h σ
+        rw [h2] at h
+        exact h
+      exact h3
 
 set_option warn.sorry false in
 theorem equiv_congr_if (h₁ : c₁ ≃ c₁') (h₂ : c₂ ≃ c₂') :
@@ -197,8 +349,14 @@ theorem equiv_congr_if (h₁ : c₁ ≃ c₁') (h₂ : c₂ ≃ c₂') :
 set_option warn.sorry false in
 theorem bequiv_congr_while (h : b ≃ b') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b' do ↑c od }⟩ := by
-  -- FILL IN HERE (optional: PR will pass without it)
+  intros σ σ'
+  apply Iff.intro
+  intros h1
+  -- generalize hx : (σ =[while ↑b' do ↑c od]=> σ') = e
+  induction (σ =[while ↑b' do ↑c od]=> σ') with
+  | refl => sorry
   sorry
+
 
 set_option warn.sorry false in
 theorem equiv_congr_while {c c' : Com} (h : c ≃ c') :
