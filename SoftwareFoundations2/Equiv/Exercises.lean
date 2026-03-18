@@ -206,7 +206,7 @@ theorem true_while
 
 
 theorem assign_aequiv
-  (h : aexp⟨{ x }⟩ ≃ a ) :
+  (h : aexp⟨{ x }⟩ ≃ ↑a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
   intros σ σ'
   apply Iff.intro
