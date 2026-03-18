@@ -209,7 +209,7 @@ theorem true_while
     simp
 
 theorem assign_aequiv
-  (h : aexp⟨{ x }⟩ ≃ a ) :
+  (h : aexp⟨{ x }⟩ ≃ ↑a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
   intro p q
   apply Iff.intro

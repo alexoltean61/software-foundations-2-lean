@@ -47,7 +47,7 @@ partial def elabAExp : Syntax → TermElabM Expr
   | `(aexp| $a1 * $a2) => return mkAppN (.const ``AExp.AMult  []) #[← elabAExp a1, ← elabAExp a2]
   | `(aexp| ( $a ))    => elabAExp a
   | `(aexp| ↑$t:term)                       => do
-        let e ← elabTerm t (some (.const `AExp []))
+        let e ← elabTermEnsuringType t (some (.const `AExp []))
         return e
   | _                  => throwUnsupportedSyntax
 
@@ -90,7 +90,7 @@ partial def elabCom : Syntax → TermElabM Expr
   | `(com| { })                           =>
         return .const ``Com.CSkip []
   | `(com| ↑$t:term = $a)                       => do
-        let e ← elabTerm t (some (.const `Var []))
+        let e ← elabTermEnsuringType t (some (.const `Var []))
         return mkAppN (.const ``Com.CAsgn  []) #[e, ← elabAExp a]
   | `(com| ↑$t:term)                       => do
         let e ← elabTerm t (some (.const `Com []))
@@ -171,6 +171,7 @@ def unexpandCSkip : Unexpander
 @[app_unexpander Com.CAsgn]
 def unexpandCAsgn : Unexpander
   | `($_ $x:str $a) => `(com| $(mkIdent x.getString.toName):ident = $(⟨a.raw⟩))
+  | `($_ $x:ident $a) => `(com| $x:ident = $(⟨a.raw⟩))
   | _ => throw ()
 
 @[app_unexpander Com.CSeq]
