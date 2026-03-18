@@ -25,7 +25,9 @@ open ComEval
 open Hoare Proof
 
 def hoare_asgn_wrong : ∃ a, ¬ ⊨ ⦃ ⊤ ⦄ ⟨{ x = ↑a }⟩ ⦃ x = a ⦄ := by
-  sorry
+  apply Exists.elim
+  case h₁ => use 0
+
 
 lemma Assertion.impl_self : P ->> P :=
   sorry
@@ -44,7 +46,13 @@ def swap {n m : ℕ} :
           x = x - y;
       }⟩
     ⦃ x = m ∧ y = n ⦄ := by
-  sorry
+    apply HSeq
+    · apply HSeq
+      · apply HAsgn
+      · apply HAsgn
+    · apply HPreStrengthen
+      · apply HAsgn
+      · verify_assertion
 
 def reduce_to_zero :
   ⊢ ⦃ ⊤ ⦄
@@ -54,7 +62,13 @@ def reduce_to_zero :
           od
       }⟩
     ⦃ x = 0 ⦄ := by
-  sorry
+  apply HConsequence
+  · apply HWhile ⦃ ⊤ ⦄
+    apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
+  · verify_assertion
+  · verify_assertion
 
 def if_minus_plus_dec :
   ⊢ ⦃ ⊤ ⦄
@@ -66,7 +80,13 @@ def if_minus_plus_dec :
           endif
       }⟩
     ⦃ y = x + z ⦄ := by
-  sorry
+  apply HIf
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
 
 def subtract_slowly {m p : ℕ} :
   ⊢ ⦃ ⊤ ⦄
