@@ -25,7 +25,32 @@ open ComEval
 open Hoare Proof
 
 def hoare_asgn_wrong : ∃ a, ¬ ⊨ ⦃ ⊤ ⦄ ⟨{ x = ↑a }⟩ ⦃ x = a ⦄ := by
-  sorry
+  use aexp⟨{ x + 1 }⟩
+  intros h
+  specialize h (fun _ => 0) (fun
+    | "x" => 1
+    | _ => 0
+  )
+  have hs : ((fun x ↦ 0) =[x = x + 1]=>  fun x ↦
+    match x with
+    | "x" => 1
+    | x => 0) := by
+    apply EAsgn
+    · trivial
+    rw [AExp.eval]
+    simp only [AExp.eval, zero_add]
+    funext x
+    if h : x = "x" then
+      simp only [h]
+      trivial
+    else
+      rw [State.set]
+      simp only [beq_iff_eq, right_eq_ite_iff, zero_ne_one, imp_false]
+      assumption
+  apply h at hs
+  simp only [forall_const] at hs
+  contradiction
+
 
 lemma Assertion.impl_self : P ->> P := by
   intros h
