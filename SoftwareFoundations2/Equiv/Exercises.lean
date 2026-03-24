@@ -118,32 +118,94 @@ theorem identity_assignment :
     simp only [AExp.eval, State.set_id]
 
 theorem skip_right : ⟨{ ↑c; skip }⟩ ≃ ⟨{ ↑c }⟩ := by
-  -- FILL IN HERE
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  · intro h
+    cases h with
+    | ESeq h1 h2 =>
+        cases h2
+        exact h1
+  · intro h
+    apply ESeq h ESkip
 
 theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ ↑c₂ }⟩ := by
-  -- FILL IN HERE
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  · intro h1
+    cases h1 with
+    | EIfTrue habs _ =>
+        simp only [bequiv, BExp.eval] at h
+        specialize h σ
+        rw [h] at habs
+        contradiction
+    | EIfFalse _ h2 =>
+        exact h2
+  · intro h1
+    apply EIfFalse
+    · apply h
+    · exact h1
 
 theorem swap_if_branches :
     ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃
     ⟨{ if !↑b then ↑c₂ else ↑c₁ endif }⟩ := by
-  -- FILL IN HERE
-  sorry
+  intro σ σ'
+  constructor
+  · intro h
+    cases h with
+    | EIfTrue hb hc1 =>
+        apply EIfFalse
+        · simpa [BExp.eval] using hb
+        · exact hc1
+    | EIfFalse hb hc2 =>
+        apply EIfTrue
+        · simpa [BExp.eval] using hb
+        · exact hc2
+  · intro h
+    cases h with
+    | EIfTrue hb hc2 =>
+        apply EIfFalse
+        · simpa [BExp.eval] using hb
+        · exact hc2
+    | EIfFalse hb hc1 =>
+        apply EIfTrue
+        · simpa [BExp.eval] using hb
+        · exact hc1
 
 theorem true_while
   (h : b ≃ bexp⟨{ btrue }⟩) :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while btrue do skip od }⟩ := by
-  -- FILL IN HERE
-  -- Hint: You'll want to use `true_while_nonterm` here.
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  · intro h1
+    have : False := true_while_nonterm h h1
+    contradiction
+  · intro h2
+    have htrue : (bexp⟨{ btrue }⟩) ≃ bexp⟨{ btrue }⟩ := by
+      intro σ; simp [BExp.eval]
+    have : False := true_while_nonterm htrue h2
+    contradiction
 
-theorem assign_aequiv
-  (h : aexp⟨{ x }⟩ ≃ ↑a ) :
-  ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
-  -- FILL IN HERE
-  sorry
+-- theorem assign_aequiv
+--   (h : aexp⟨{ x }⟩ ≃ ↑a ) :
+--   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
+--   intro σ σ'
+--   constructor
+--   · intro h1
+--     cases h1
+--     case EAsgn n eqn eqs =>
+--       subst eqn
+--       subst eqs
+--       have : σ' = σ := by
+--         rw [h σ]
+--         simp [State.set_id]
+--       subst this
+--       exact ESkip
+--   · intro h1
+--     cases h1
+--     apply EAsgn rfl
+--     rw [h σ]
+--     simp [State.set_id]
 
 set_option warn.sorry false in
 theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
@@ -152,18 +214,30 @@ theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {
 
 @[refl]
 theorem equiv_refl : c ≃ c := by
-  -- FILL IN HERE
-  sorry
+  intro σ σ'
+  constructor
+  · intro h; exact h
+  · intro h; exact h
 
 @[trans]
 theorem equiv_trans : c₁ ≃ c₂ → c₂ ≃ c₃ → c₁ ≃ c₃ := by
-  -- FILL IN HERE
-  sorry
+  intro h12 h23 σ σ'
+  constructor
+  · intro h1
+    have h2 := (h12 σ σ').mp h1
+    exact (h23 σ σ').mp h2
+  · intro h3
+    have h2 := (h23 σ σ').mpr h3
+    exact (h12 σ σ').mpr h2
 
 @[symm]
 theorem equiv_symm : c₁ ≃ c₂ → c₂ ≃ c₁ := by
-  -- FILL IN HERE
-  sorry
+  intro h σ σ'
+  constructor
+  · intro h2
+    exact (h σ σ').mpr h2
+  · intro h1
+    exact (h σ σ').mp h1
 
 set_option warn.sorry false in
 theorem equiv_congr_asgn {a₁ a₂ : AExp} (h : a₁ ≃ a₂) :
