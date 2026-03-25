@@ -7,8 +7,9 @@ open Lean
 notation "ATrue" => Assertion.top
 notation "AFalse" => Assertion.bot
 prefix:100 "¬" => Assertion.neg
-infix:99 " → " => Assertion.impl
-infix:80 " ∧ " => Assertion.and
+infix:99 " ∧ " => Assertion.and
+infix:99 " ∨  " => Assertion.or
+infix:80 " → " => Assertion.impl
 
 declare_syntax_cat assertTerm
 declare_syntax_cat assert
@@ -16,7 +17,7 @@ declare_syntax_cat assert
 syntax num   : assertTerm
 syntax ident : assertTerm
 syntax str : assertTerm -- todo...
-syntax "↑" term : assertTerm -- todo...
+syntax:max "↑" term:arg : assertTerm -- todo...
 syntax:50 assertTerm:49 " * " assertTerm:48 : assertTerm
 syntax:50 assertTerm:49 " / " assertTerm:48 : assertTerm
 syntax:45 assertTerm:44 " % " assertTerm:43 : assertTerm
@@ -28,6 +29,7 @@ syntax "T" : assert
 syntax "⊤" : assert
 syntax "F" : assert
 syntax "⊥" : assert
+--syntax ident : assert
 syntax:100 assertTerm " = " assertTerm : assert
 syntax:100 assertTerm " != " assertTerm : assert
 syntax:100 assertTerm " ≠ " assertTerm : assert
@@ -37,12 +39,13 @@ syntax:100 assertTerm " < " assertTerm : assert
 syntax:100 assertTerm " >= " assertTerm : assert
 syntax:100 assertTerm " ≥ " assertTerm : assert
 syntax:100 assertTerm " > " assertTerm : assert
-syntax:100 "¬" assert : assert
-syntax:99 assert:97 " → " assert:98 : assert
-syntax:95 assert:93 " ↔ " assert:94 : assert
-syntax:85 assert:83 " ∨ " assert:84 : assert
-syntax:80 assert:78 " ∧ " assert:79 : assert
+syntax:101 "¬" assert:100 : assert
+syntax:99 assert:97 " ∧ " assert:98 : assert
+syntax:99 assert:97 " ∨ " assert:98 : assert
+syntax:80 assert:78 " → " assert:79 : assert
+syntax:80 assert:78 " ↔ " assert:90 : assert
 syntax:max "(" assert ")" : assert
+syntax:max "↑" term:arg   : assert
 
 syntax "T⦃" assertTerm "⦄" : term
 syntax "⦃" assert "⦄" : term
@@ -79,11 +82,6 @@ macro_rules
 
 open Elab Term Meta PrettyPrinter
 
--- TODO: move everything in elaborator?
-elab "⦃" "↑" t:term "⦄" : term => do
-  let e ← elabTerm t (some (.const `Assertion []))
-  return e
-
 elab_rules : term
   | `(T⦃ $id:ident ⦄ ) => do
     let isProperIdent ← Elab.Term.isLocalIdent? id
@@ -106,6 +104,12 @@ elab_rules : term
     | none =>
         let e := mkStrLit id.getId.toString
         return mkAppN (.const ``Eval.eval []) #[.const ``Var [], .const ``instEvalVar [], e]
+  --| `(⦃ $id:ident ⦄ ) => do
+  --    let e ← elabTerm id (some (.const `Assertion []))
+  --    return e
+  | `(⦃ ↑$t:term ⦄ ) => do
+      let e ← elabTerm t (some (.const `Assertion []))
+      return e
 
 @[app_unexpander Eval.eval]
 def unexpandEval : Unexpander
@@ -144,7 +148,7 @@ def unexpandTop : Unexpander
 @[app_unexpander Assertion.bot]
 def unexpandBot : Unexpander
   | `($_) => `(assert| ⊥)
-
+ 
 @[app_unexpander Assertion.eq]
 def unexpandEq : Unexpander
   | `($_ $lhs $rhs) => `(assert| $(⟨lhs.raw⟩):assertTerm = $(⟨rhs.raw⟩))
@@ -209,8 +213,8 @@ attribute [aesop norm (rule_sets := [assertion])] State.set_id
 attribute [aesop norm (rule_sets := [assertion])] State.set_comm
 
 macro "verify_assertion" : tactic =>
-  `(tactic| simp [BExp.assert, ValThunk.ofNat, ValThunk.ofVar, ValThunk.ofAExp,
-            Eval.add, Eval.sub, Eval.mul, toAssert, Assertion.implies,
+  `(tactic| simp_all [BExp.assert, ValThunk.ofNat, ValThunk.ofVar, ValThunk.ofAExp,
+            Eval.add, Eval.sub, Eval.mul, toAssert, Assertion.true, Assertion.implies,
             Assertion.top, Assertion.bot, Assertion.eq, Assertion.neq,
             Assertion.leq, Assertion.le, Assertion.geq, Assertion.ge,
             Assertion.impl, Assertion.iff, Assertion.or, Assertion.and,

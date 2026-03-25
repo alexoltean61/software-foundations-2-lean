@@ -2,6 +2,8 @@ import SoftwareFoundations2.Equiv.Def
 
 open ComEval
 
+namespace PgmEquiv
+
 variable {c c₁ c₂ c₃ : Com}
 variable {b : BExp}
 
@@ -471,3 +473,5 @@ theorem equiv_congr_while {c c' : Com} (h : c ≃ c') :
       cases eq
       assumption
     | _ => contradiction
+
+end PgmEquiv
