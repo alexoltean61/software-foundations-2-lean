@@ -27,14 +27,19 @@ open Hoare Proof
 def hoare_asgn_wrong : ∃ a, ¬ ⊨ ⦃ ⊤ ⦄ ⟨{ x = ↑a }⟩ ⦃ x = a ⦄ := by
   sorry
 
-lemma Assertion.impl_self : P ->> P :=
-  sorry
+lemma Assertion.impl_self : P ->> P := by
+  intro σ h
+  exact h
 
-def Hoare.HPreStrengthen : Proof P' c Q → (P ->> P') → Proof P c Q :=
-  sorry
-
-def Hoare.HPostWeaken : Proof P c Q' → (Q' ->> Q) → Proof P c Q :=
-  sorry
+def Hoare.HPreStrengthen : Proof P' c Q → (P ->> P') → Proof P c Q := by
+  intro h ha
+  apply HConsequence h _ ha
+  apply Assertion.impl_self
+  
+def Hoare.HPostWeaken : Proof P c Q' → (Q' ->> Q) → Proof P c Q := by
+  intro h ha
+  apply HConsequence h ha
+  apply Assertion.impl_self
 
 def swap {n m : ℕ} :
   ⊢ ⦃ x = n ∧ y = m ⦄
@@ -44,7 +49,13 @@ def swap {n m : ℕ} :
           x = x - y;
       }⟩
     ⦃ x = m ∧ y = n ⦄ := by
-  sorry
+      apply HSeq
+      · apply HSeq
+        · apply HAsgn
+        · apply HAsgn
+      · apply HPreStrengthen
+        · apply HAsgn
+        · verify_assertion
 
 def reduce_to_zero :
   ⊢ ⦃ ⊤ ⦄
@@ -54,7 +65,13 @@ def reduce_to_zero :
           od
       }⟩
     ⦃ x = 0 ⦄ := by
-  sorry
+  apply HConsequence
+  · apply HWhile ⦃ ⊤ ⦄
+    · apply HPreStrengthen
+      · apply HAsgn
+      · verify_assertion
+  · verify_assertion
+  · verify_assertion
 
 def if_minus_plus_dec :
   ⊢ ⦃ ⊤ ⦄
@@ -66,7 +83,13 @@ def if_minus_plus_dec :
           endif
       }⟩
     ⦃ y = x + z ⦄ := by
-  sorry
+      apply HIf
+      · apply HPreStrengthen
+        · apply HAsgn
+        · verify_assertion
+      · apply HPreStrengthen
+        · apply HAsgn
+        · verify_assertion
 
 def subtract_slowly {m p : ℕ} :
   ⊢ ⦃ ⊤ ⦄
@@ -79,7 +102,21 @@ def subtract_slowly {m p : ℕ} :
           od
       }⟩
     ⦃ z = p - m ⦄ := by
-  sorry
+      apply HSeq
+      · apply HSeq
+        · apply HPostWeaken
+          · apply HWhile ⦃ z - x = p - m⦄
+            · apply HSeq
+              · apply HAsgn
+              · apply HPreStrengthen
+                · apply HAsgn
+                · verify_assertion
+          · verify_assertion
+        · apply HAsgn
+      · apply HPreStrengthen
+        · apply HAsgn
+        · verify_assertion
+
 
 def slow_assignment {m : ℕ} :
   ⊢ ⦃ "x" = m ⦄ -- ignore the apostrophes, fix is TODO for now, but meaning is as usual
@@ -91,7 +128,18 @@ def slow_assignment {m : ℕ} :
           od
       }⟩
     ⦃ "y" = m ⦄ := by
-  sorry
+      apply HSeq
+      · apply HPostWeaken
+        · apply HWhile ⦃ x + y = m ⦄
+          · apply HSeq
+            · apply HAsgn
+            · apply HPreStrengthen
+              · apply HAsgn
+              · verify_assertion
+        · verify_assertion
+      · apply HPreStrengthen
+        · apply HAsgn
+        · verify_assertion
 
 
 def div_mod_dec {a b : ℕ} :
@@ -105,10 +153,23 @@ def div_mod_dec {a b : ℕ} :
         od
       }⟩
     ⦃ y = a / b ∧ x = a % b ⦄ := by
-  -- OPTIONAL (PR will pass without it)
-  -- You may need the following helper lemmas:
-  -- `natSumDiv`, `Nat.mod_eq_of_lt`
-  sorry
+  apply HSeq
+  · apply HSeq
+    · apply HPostWeaken
+      · apply HWhile ⦃ x + y * b = a ⦄ 
+        · apply HSeq
+          · apply HAsgn
+          · apply HPreStrengthen
+            · apply HAsgn
+            · verify_assertion
+      · verify_assertion
+        · rw [Nat.add_comm, Nat.mul_comm, natSumDiv]
+          · exact a_2
+        · rw [← Nat.mod_eq_of_lt a_2, Nat.mod_mod]
+    · apply HAsgn
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
 
 def fib : ℕ → ℕ
   | 0 => 1
@@ -119,7 +180,15 @@ def fib : ℕ → ℕ
 
 lemma fib_eqn (n : ℕ) (h : n > 0) :
   fib n + fib (n - 1) = fib (1 + n) := by
-  sorry
+    induction n with
+    | zero =>
+      cases h
+    | succ n' ih =>
+      cases n' with
+      | zero =>
+        simp [fib]
+      | succ k =>
+        simp [fib, Nat.add_comm, Nat.add_left_comm]
 
 def fibonacci {n f : ℕ} :
   ⊢ ⦃ ⊤ ⦄
@@ -138,4 +207,23 @@ def fibonacci {n f : ℕ} :
   -- OPTIONAL (PR will pass without it)
   -- You may need the following helper lemma:
   -- `fib_eqn`
-  sorry
+  apply HSeq
+  · apply HSeq
+    · apply HSeq
+      · apply HPostWeaken
+        · apply HWhile
+          · apply HSeq
+            · apply HSeq
+              · apply HSeq
+                · apply HAsgn
+                · apply HAsgn
+              · apply HAsgn
+            · apply HPreStrengthen
+              · apply HAsgn
+              · sorry
+        · verify_assertion
+      · apply HAsgn
+    · apply HAsgn
+  · apply HPreStrengthen
+    · apply HAsgn
+    · sorry
