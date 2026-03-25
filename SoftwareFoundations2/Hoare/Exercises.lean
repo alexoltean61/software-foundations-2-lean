@@ -217,7 +217,6 @@ lemma fib_eqn (n : ℕ) (h : n > 0) :
     rw [←add_assoc, add_comm (1 + m) 1, ←add_assoc, add_comm 2 m]
     conv in fib (m + 2) => unfold fib
 
--- I cannot solve this one...
 def fibonacci {n : ℕ} :
   ⊢ ⦃ ⊤ ⦄
       ⟨{
@@ -237,7 +236,6 @@ def fibonacci {n : ℕ} :
   · apply HSeq
     · apply HSeq
       · apply HPostWeaken
-        -- This does not work and I do not know how to fix it
         · apply HWhile (fun σ => (σ "x" > 0) ∧ (σ "y" = fib (σ "x" - 1)) ∧ (σ "z" = fib (σ "x")))
           · apply HSeq
             · apply HSeq
