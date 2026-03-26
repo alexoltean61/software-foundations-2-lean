@@ -11,7 +11,7 @@ structure isWeakestPre (c : Com) (Q P : Assertion) where
 
 /-- Since we use Lean's `Prop` as an assertion language, it is trivial to define
     a `wlp` assertion that satisfies the `isWeakestPre` requirements: -/
-def wlp (c : Com) (Q : Assertion) : Assertion := 
+def wlp (c : Com) (Q : Assertion) : Assertion :=
   fun σ => ∀ σ', σ =[c]=> σ' → Q σ'
 
 lemma weakestPreSkip {w : Assertion} (h : isWeakestPre .CSkip Q w) :
@@ -64,10 +64,10 @@ def Completeness :
       obtain ⟨c₁Pre, _⟩ := @wlpIsWp c₁ (wlp c₂ Q)
       obtain c₁Pre := Completeness c₁Pre
       --
-      apply HSeq 
+      apply HSeq
       · exact c₂Pre
       · apply HPreStrengthen c₁Pre
-        · simp only [Assertion.implies, wlp]
+        · simp only [Assertion.implies]
           intro _ h _ h3 st3 h4
           specialize h st3 (.ESeq h3 h4)
           exact h

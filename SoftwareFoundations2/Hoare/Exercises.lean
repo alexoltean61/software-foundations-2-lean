@@ -215,7 +215,7 @@ lemma fib_eqn (n : ℕ) (h : n > 0) :
   | succ m ih =>
     simp only [add_tsub_cancel_right]
     rw [←add_assoc, add_comm (1 + m) 1, ←add_assoc, add_comm 2 m]
-    conv in fib (m + 2) => unfold fib
+    rfl
 
 def fibonacci {n : ℕ} :
   ⊢ ⦃ ⊤ ⦄
@@ -253,7 +253,7 @@ def fibonacci {n : ℕ} :
     · apply HAsgn
   · apply HPreStrengthen
     · apply HAsgn
-    · simp only [Assertion.implies, Assertion.top, gt_iff_lt, forall_const]
+    · simp only [Assertion.implies, gt_iff_lt]
       intros σ
       unfold Assertion.subst
       unfold State.set
