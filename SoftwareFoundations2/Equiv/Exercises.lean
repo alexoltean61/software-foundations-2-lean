@@ -119,12 +119,43 @@ theorem identity_assignment :
 
 theorem skip_right : ⟨{ ↑c; skip }⟩ ≃ ⟨{ ↑c }⟩ := by
   -- FILL IN HERE
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  · -- Direction : c; skip => c
+    intro h
+    cases h with
+    | ESeq h1 h2 =>
+        cases h2
+        exact h1
+  · --Direction : c => c; skip
+    intro h
+    apply ESeq h
+    apply ESkip
 
 theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ ↑c₂ }⟩ := by
   -- FILL IN HERE
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  · -- Direction : (if b then c1 else c2) -> c2
+    intro h1
+    cases h1 with
+    | EIfTrue habs _ =>
+        -- This case is impossible because b is false
+        simp only [bequiv, BExp.eval] at h
+        specialize h σ
+        rw [h] at habs
+        contradiction
+    | EIfFalse _ h2 =>
+        -- This case is valid
+        exact h2
+  · -- Direction : c2 -> (if b then c1 else c2)
+    intro h2
+    apply EIfFalse
+    · -- Prove that b evaluates to false
+      apply h
+    · -- Provide the execution of c2
+      exact h2
 
 theorem swap_if_branches :
     ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃
