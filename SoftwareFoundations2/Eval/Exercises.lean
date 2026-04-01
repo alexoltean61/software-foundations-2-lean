@@ -13,14 +13,16 @@ theorem ceval_example1 :
   ]=> σ["z" ↦ 4]["x" ↦ 2] := by
   apply ESeq
   · apply EAsgn
-    · rfl
-    · rfl
-  · apply EIfFalse
+    · rfl -- eval 2 = eval 2
+    · rfl -- σ[x -> eval 2] = σ[x -> eval 2]
+  · simp only [AExp.eval]
+    apply EIfFalse
     · rfl
     · apply EAsgn
-      · rfl
-      · simp only [AExp.eval]
-        grind
+      · unfold AExp.eval
+        rfl -- 4 = 4
+      · apply State.set_comm
+        simp
 
 theorem ceval_example2 :
   σ =[
@@ -28,5 +30,16 @@ theorem ceval_example2 :
     y = 1;
     z = 2
   ]=> σ["z"↦2]["y"↦1]["x"↦0] := by
-  -- FILL IN HERE
-  sorry
+  apply ESeq
+  · apply EAsgn
+    · rfl
+    · rfl
+  · simp only [AExp.eval]
+    apply ESeq
+    · apply EAsgn
+      · rfl
+      · rfl
+    · simp only [AExp.eval]
+      apply EAsgn
+      · rfl
+      · simp [State.set_comm]

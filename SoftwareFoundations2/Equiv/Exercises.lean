@@ -2,8 +2,6 @@ import SoftwareFoundations2.Equiv.Def
 
 open ComEval
 
-namespace PgmEquiv
-
 variable {c c₁ c₂ c₃ : Com}
 variable {b : BExp}
 
@@ -120,32 +118,96 @@ theorem identity_assignment :
     simp only [AExp.eval, State.set_id]
 
 theorem skip_right : ⟨{ ↑c; skip }⟩ ≃ ⟨{ ↑c }⟩ := by
-  -- FILL IN HERE
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  · intro h
+    cases h with
+    | ESeq h1 h2 =>
+        cases h2
+        exact h1
+  · intro h
+    exact ESeq h ESkip
+
 
 theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ ↑c₂ }⟩ := by
-  -- FILL IN HERE
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  · intro h1
+    cases h1 with
+    | EIfFalse _ _ => assumption
+    | EIfTrue habs _ =>
+      simp only [bequiv, BExp.eval] at h
+      specialize h σ
+      rw [h] at habs
+      contradiction
+  · intro h1
+    apply EIfFalse _ h1
+    apply h
+
 
 theorem swap_if_branches :
     ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃
     ⟨{ if !↑b then ↑c₂ else ↑c₁ endif }⟩ := by
-  -- FILL IN HERE
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  · intro h
+    cases h with
+    | EIfFalse hone htwo =>
+      apply EIfTrue _ htwo
+      simp only [BExp.eval, Bool.not_eq_eq_eq_not, Bool.not_true]
+      exact hone
+    | EIfTrue hone htwo =>
+      apply EIfFalse _ htwo
+      simp only [BExp.eval, Bool.not_eq_eq_eq_not, Bool.not_false]
+      exact hone
+  · intro h
+    cases h with
+    | EIfFalse hone htwo =>
+        apply EIfTrue _ htwo
+        simp only [BExp.eval, Bool.not_eq_eq_eq_not, Bool.not_false] at hone
+        exact hone
+    | EIfTrue hone htwo =>
+        apply EIfFalse _ htwo
+        simp only [BExp.eval, Bool.not_eq_eq_eq_not, Bool.not_true] at hone
+        exact hone
+
 
 theorem true_while
   (h : b ≃ bexp⟨{ btrue }⟩) :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while btrue do skip od }⟩ := by
-  -- FILL IN HERE
-  -- Hint: You'll want to use `true_while_nonterm` here.
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  · intro h1
+    apply true_while_nonterm at h1
+    · contradiction
+    · exact h
+  · intro h1
+    apply true_while_nonterm at h1
+    · contradiction
+    · simp
 
 theorem assign_aequiv
-  (h : aexp⟨{ x }⟩ ≃ ↑a ) :
+  (h : aexp⟨{ x }⟩ ≃ a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
-  -- FILL IN HERE
-  sorry
+ intro σ σ'
+ apply Iff.intro
+ · intro h1
+   cases h1 with
+    | EAsgn heval hset =>
+        subst heval
+        simp only [aequiv, AExp.eval] at h
+        rw [← h σ] at hset
+        simp only [State.set_id] at hset
+        subst hset
+        exact ESkip
+ · intro h1
+   cases h1
+   simp only [aequiv, AExp.eval] at h
+   apply EAsgn
+   · exact h σ
+   · simp [State.set_id]
+
 
 set_option warn.sorry false in
 theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
@@ -154,22 +216,23 @@ theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {
 
 @[refl]
 theorem equiv_refl : c ≃ c := by
-  -- FILL IN HERE
-  sorry
+  intro σ σ'
+  · rfl
 
 @[trans]
 theorem equiv_trans : c₁ ≃ c₂ → c₂ ≃ c₃ → c₁ ≃ c₃ := by
-  -- FILL IN HERE
-  sorry
+  intro h1 h2 σ σ'
+  exact Iff.trans (h1 σ σ') (h2 σ σ')
+
 
 @[symm]
 theorem equiv_symm : c₁ ≃ c₂ → c₂ ≃ c₁ := by
-  -- FILL IN HERE
-  sorry
+  intro σ σ' σ''
+  exact iff_comm.mp (σ σ' σ'')
 
 set_option warn.sorry false in
 theorem equiv_congr_asgn {a₁ a₂ : AExp} (h : a₁ ≃ a₂) :
-  ⟨{ ↑x = ↑a₁ }⟩ ≃ ⟨{ ↑x = ↑a₂ }⟩ := by
+  ⟨{ ↑x = a₁ }⟩ ≃ ⟨{ ↑x = a₂ }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
   sorry
 
@@ -207,5 +270,3 @@ theorem equiv_congr_while {c c' : Com} (h : c ≃ c') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b do ↑c' od }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
   sorry
-
-end PgmEquiv
