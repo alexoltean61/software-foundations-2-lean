@@ -2,6 +2,8 @@ import SoftwareFoundations2.Equiv.Def
 
 open ComEval
 
+namespace PgmEquiv
+
 variable {c c₁ c₂ c₃ : Com}
 variable {b : BExp}
 
@@ -271,3 +273,5 @@ theorem equiv_congr_while {c c' : Com} (h : c ≃ c') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b do ↑c' od }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
   sorry
+
+end PgmEquiv
