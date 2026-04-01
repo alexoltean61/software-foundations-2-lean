@@ -2,6 +2,8 @@ import SoftwareFoundations2.Equiv.Def
 
 open ComEval
 
+namespace PgmEquiv
+
 variable {c c₁ c₂ c₃ : Com}
 variable {b : BExp}
 
@@ -171,7 +173,7 @@ theorem true_while
   sorry
 
 theorem assign_aequiv
-  (h : aexp⟨{ x }⟩ ≃ a ) :
+  (h : aexp⟨{ x }⟩ ≃ ↑a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
   -- FILL IN HERE
   sorry
@@ -198,7 +200,7 @@ theorem equiv_symm : c₁ ≃ c₂ → c₂ ≃ c₁ := by
 
 set_option warn.sorry false in
 theorem equiv_congr_asgn {a₁ a₂ : AExp} (h : a₁ ≃ a₂) :
-  ⟨{ ↑x = a₁ }⟩ ≃ ⟨{ ↑x = a₂ }⟩ := by
+  ⟨{ ↑x = ↑a₁ }⟩ ≃ ⟨{ ↑x = ↑a₂ }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
   sorry
 
@@ -236,3 +238,5 @@ theorem equiv_congr_while {c c' : Com} (h : c ≃ c') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b do ↑c' od }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
   sorry
+
+end PgmEquiv
