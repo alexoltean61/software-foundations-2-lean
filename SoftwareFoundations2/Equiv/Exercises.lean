@@ -2,6 +2,8 @@ import SoftwareFoundations2.Equiv.Def
 
 open ComEval
 
+namespace PgmEquiv
+
 variable {c c₁ c₂ c₃ : Com}
 variable {b : BExp}
 
@@ -428,7 +430,6 @@ theorem bequiv_congr_while (h : b ≃ b') :
       apply EWhileFalse
       · exact hfalse
     | _ => aesop
-
   · generalize eq : ⟨{ while ↑b' do ↑c od }⟩ = loop
     intro h1
     induction h1 with

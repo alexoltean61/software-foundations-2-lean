@@ -23,10 +23,7 @@ def Assertion.subst (P : Assertion) (x : Var) (a : AExp) : Assertion :=
 
 notation P "[" a " // " x "]" => Assertion.subst P x a
 
-@[simp] abbrev Assertion.implies (P Q : Assertion) : Prop :=
-  ∀ σ, P σ → Q σ
-
-infixr:80 " ->> " => Assertion.implies
+@[simp] abbrev Assertion.true (P : Assertion) : Prop := ∀ σ, P σ
 
 abbrev ValThunk := State → ℕ
 
@@ -46,15 +43,15 @@ class Eval (α : Type) where
   eval := ValThunk.ofAExp
 
 @[simp]
-abbrev Eval.add (x y : ValThunk) : ValThunk := fun σ => x σ + y σ 
+abbrev Eval.add (x y : ValThunk) : ValThunk := fun σ => x σ + y σ
 @[simp]
-abbrev Eval.sub (x y : ValThunk) : ValThunk := fun σ => x σ - y σ 
+abbrev Eval.sub (x y : ValThunk) : ValThunk := fun σ => x σ - y σ
 @[simp]
-abbrev Eval.mul (x y : ValThunk) : ValThunk := fun σ => x σ * y σ 
+abbrev Eval.mul (x y : ValThunk) : ValThunk := fun σ => x σ * y σ
 @[simp]
 abbrev Eval.div (x y : ValThunk) : ValThunk := fun σ => x σ / y σ
 @[simp]
-abbrev Eval.mod (x y : ValThunk) : ValThunk := fun σ => x σ % y σ 
+abbrev Eval.mod (x y : ValThunk) : ValThunk := fun σ => x σ % y σ
 
 @[simp] abbrev toAssert : (State → Prop) → Assertion   := id
 
@@ -86,3 +83,13 @@ abbrev Eval.mod (x y : ValThunk) : ValThunk := fun σ => x σ % y σ
   fun σ => ¬P σ
 
 declare_aesop_rule_sets [assertion] (default := false)
+
+@[simp] abbrev Assertion.implies (P Q : Assertion) : Prop :=
+  (P.impl Q).true
+
+@[simp] def Assertion.bothElimL {P Q : Assertion} (h : (P.and Q).true) : P.true :=
+  fun σ => (h σ).1
+@[simp] def Assertion.bothElimR {P Q : Assertion} (h : (P.and Q).true) : Q.true :=
+  fun σ => (h σ).2
+
+infixr:80 " ->> " => Assertion.implies

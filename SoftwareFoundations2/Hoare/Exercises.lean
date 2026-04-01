@@ -30,8 +30,11 @@ def hoare_asgn_wrong : ∃ a, ¬ ⊨ ⦃ ⊤ ⦄ ⟨{ x = ↑a }⟩ ⦃ x = a �
   unfold Valid at h
   simp only [Assertion.top, Assertion.eq, instEvalVar, ValThunk.ofVar, instEvalAExp,
     ValThunk.ofAExp, AExp.eval, Nat.left_eq_add, one_ne_zero, imp_false, not_true_eq_false] at h
-
-  sorry
+  specialize h State.init (State.set State.init "x" (aexp⟨{x + 1}⟩.eval State.init))
+  apply h
+  apply EAsgn
+  · rfl
+  · rfl
 
 lemma Assertion.impl_self : P ->> P := by
   unfold implies
@@ -195,7 +198,15 @@ def fib : ℕ → ℕ
 
 lemma fib_eqn (n : ℕ) (h : n > 0) :
   fib n + fib (n - 1) = fib (1 + n) := by
-  sorry
+  induction n with
+  | zero => simp_all only [lt_self_iff_false]
+  | succ m hm =>
+  simp only [add_tsub_cancel_right]
+  nth_rw 3 [Nat.add_comm]
+  rw [Nat.add_assoc]
+  simp only [Nat.reduceAdd]
+  rfl
+
 
 def fibonacci {n f : ℕ} :
   ⊢ ⦃ ⊤ ⦄
@@ -214,16 +225,29 @@ def fibonacci {n f : ℕ} :
   -- OPTIONAL (PR will pass without it)
   -- You may need the following helper lemma:
   -- `fib_eqn`
-  -- apply HSeq
-  -- · apply HSeq
-  --   · apply HSeq
-  --     · apply HPostWeaken
-  --       · apply HWhile ⦃z = ↑(fib x)⦄
-  --       · verify_assertion
-  --         sorry
-  --     · sorry
-  --   · sorry
-  --   · sorry
-  -- · sorry
-  -- · sorry
-  sorry
+  apply HSeq
+  · apply HSeq
+    · apply HSeq
+      · apply HPostWeaken
+        · apply HWhile (Assertion.and (fun σ => σ "x" > 0)
+           (Assertion.and (fun σ => σ "z" = fib (σ "x")) (fun σ => σ "y" = fib (σ "x" - 1))))
+          · apply HPreStrengthen
+            · apply HSeq
+              · apply HSeq
+                · apply HSeq
+                  · apply HAsgn
+                  · apply HAsgn
+                · apply HAsgn
+              · apply HAsgn
+            · verify_assertion
+              apply fib_eqn
+              exact a
+        · verify_assertion
+      · apply HAsgn
+    · apply HAsgn
+  · apply HConsequence
+    · apply HAsgn
+    · verify_assertion
+      · sorry
+      · sorry
+    · verify_assertion
