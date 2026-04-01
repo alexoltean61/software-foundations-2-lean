@@ -25,16 +25,49 @@ open ComEval
 open Hoare Proof
 
 def hoare_asgn_wrong : ∃ a, ¬ ⊨ ⦃ ⊤ ⦄ ⟨{ x = ↑a }⟩ ⦃ x = a ⦄ := by
-  sorry
+  exists aexp⟨{x+1}⟩
+  intro h
+  unfold Valid at h
+  simp only [Assertion.top, Assertion.eq, instEvalVar, ValThunk.ofVar, instEvalAExp,
+    ValThunk.ofAExp, AExp.eval, Nat.left_eq_add, one_ne_zero, imp_false, not_true_eq_false] at h
+  specialize h (State.init) (State.init["x" ↦ 1])
+  apply h
+  apply EAsgn
+  · simp [AExp.eval]
+    rfl
+  · simp [State.init, Inhabited.default]
 
-lemma Assertion.impl_self : P ->> P :=
-  sorry
+  -- SAU VARIANTA MAI COMPLICATA
+  -- specialize h (State.init["x" ↦ 1]) (State.init["x" ↦ 2])
+  -- apply h
+  -- apply EAsgn
+  -- · simp [AExp.eval, State.set]
+  --   rfl
+  -- · simp [State.init, State.set, Inhabited.default]
+  --   -- Fie f si g doua functii cu acelasi domeniu si codomeniu
+  --   -- f = g daca si numai daca pt orice x, f x = g x
+  --   -- Tactica funext rescrie goalul conform acestei echivalente:
+  --   funext x
+  --   by_cases isx : x = "x"
+  --   · simp [isx, State.set]
+  --   · simp [State.set, isx]
 
-def Hoare.HPreStrengthen : Proof P' c Q → (P ->> P') → Proof P c Q :=
-  sorry
+lemma Assertion.impl_self : P ->> P := by
+  verify_assertion
 
-def Hoare.HPostWeaken : Proof P c Q' → (Q' ->> Q) → Proof P c Q :=
-  sorry
+def Hoare.HPreStrengthen : Proof P' c Q → (P ->> P') → Proof P c Q := by
+  intro h1 h2
+  · apply HConsequence
+    · exact h1
+    · verify_assertion
+    · verify_assertion
+
+def Hoare.HPostWeaken : Proof P c Q' → (Q' ->> Q) → Proof P c Q := by
+  intro h1 h2
+  · apply HConsequence
+    · exact h1
+    · verify_assertion
+    · verify_assertion
 
 def swap {n m : ℕ} :
   ⊢ ⦃ x = n ∧ y = m ⦄
@@ -44,7 +77,15 @@ def swap {n m : ℕ} :
           x = x - y;
       }⟩
     ⦃ x = m ∧ y = n ⦄ := by
-  sorry
+  apply HSeq
+  · apply HSeq
+    · -- ?a.Q✝ === ⦃ "x" = m ∧ "y" = n ⦄[x - y // x]
+      apply HAsgn
+    · -- postconditia este  ⦃ x - y = m ∧ "y" = n ⦄
+      apply HAsgn
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
 
 def reduce_to_zero :
   ⊢ ⦃ ⊤ ⦄
@@ -54,7 +95,13 @@ def reduce_to_zero :
           od
       }⟩
     ⦃ x = 0 ⦄ := by
-  sorry
+  apply HConsequence
+  · apply HWhile ⦃ ⊤ ⦄
+    apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
+  · verify_assertion
+  · verify_assertion
 
 def if_minus_plus_dec :
   ⊢ ⦃ ⊤ ⦄
@@ -66,7 +113,13 @@ def if_minus_plus_dec :
           endif
       }⟩
     ⦃ y = x + z ⦄ := by
-  sorry
+  apply HIf
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
 
 def subtract_slowly {m p : ℕ} :
   ⊢ ⦃ ⊤ ⦄
@@ -79,7 +132,20 @@ def subtract_slowly {m p : ℕ} :
           od
       }⟩
     ⦃ z = p - m ⦄ := by
-  sorry
+  apply HSeq
+  · apply HSeq
+    · apply HPostWeaken
+      · apply HWhile ⦃ z = (p + x) - m ⦄
+        · apply HSeq
+          · apply HAsgn
+          · apply HPreStrengthen
+            · apply HAsgn
+            · verify_assertion
+      · verify_assertion
+    · apply HAsgn
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
 
 def slow_assignment {m : ℕ} :
   ⊢ ⦃ "x" = m ⦄ -- ignore the apostrophes, fix is TODO for now, but meaning is as usual
@@ -91,7 +157,19 @@ def slow_assignment {m : ℕ} :
           od
       }⟩
     ⦃ "y" = m ⦄ := by
-  sorry
+  apply HSeq
+  · apply HPostWeaken
+    · apply HWhile ⦃ m = x + y ⦄
+      · apply HSeq
+        · apply HAsgn
+        · apply HPreStrengthen
+          · apply HAsgn
+          · verify_assertion
+    · verify_assertion
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
+
 
 
 def div_mod_dec {a b : ℕ} :
@@ -119,7 +197,16 @@ def fib : ℕ → ℕ
 
 lemma fib_eqn (n : ℕ) (h : n > 0) :
   fib n + fib (n - 1) = fib (1 + n) := by
-  sorry
+  induction n with
+  | zero => contradiction
+  | succ m ih =>
+      simp only [add_tsub_cancel_right]
+      rw [← Nat.add_assoc]
+      rw [Nat.add_comm (1+m) _ ]
+      rw [← Nat.add_assoc]
+      simp only [Nat.reduceAdd]
+      rw [Nat.add_comm 2 m]
+      rfl
 
 def fibonacci {n f : ℕ} :
   ⊢ ⦃ ⊤ ⦄
