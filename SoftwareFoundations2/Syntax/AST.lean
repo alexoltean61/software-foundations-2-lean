@@ -13,6 +13,15 @@ inductive AExp where
   | AMult  (a1 a2 : AExp)
 deriving Repr
 
+@[coe, simp]
+abbrev var2AExp : Var → AExp := AExp.AId
+instance : Coe Var AExp where
+  coe := var2AExp
+@[coe, simp]
+abbrev nat2AExp : Nat → AExp := AExp.ANum
+instance : Coe Nat AExp where
+  coe := nat2AExp
+
 /-
   Abstract syntax of boolean expressions
 -/
