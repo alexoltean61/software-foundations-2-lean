@@ -245,9 +245,6 @@ def fibonacci {n f : ℕ} :
         · verify_assertion
       · apply HAsgn
     · apply HAsgn
-  · apply HConsequence
+  · apply HPreStrengthen
     · apply HAsgn
-    · verify_assertion
-      · sorry
-      · sorry
     · verify_assertion
