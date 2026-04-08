@@ -177,25 +177,17 @@ theorem swap_if_branches :
 theorem true_while
   (h : b ≃ bexp⟨{ btrue }⟩) :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while btrue do skip od }⟩ := by
-  -- FILL IN HERE
   -- Hint: You'll want to use `true_while_nonterm` here.
-  intros σ σ'
+  intro σ σ'
   apply Iff.intro
-  intros h1
-  · apply true_while_nonterm at h
+  · intro h1
+    have : False := true_while_nonterm h h1
     contradiction
-  intros h1
-  generalize eq : ⟨{ while btrue do skip od }⟩ = loop at h1
-  induction h1 with
-  | EWhileTrue htrue h1 h2 _ ih =>
-      cases eq
-      simp at ih
-      apply true_while_nonterm at h
-      contradiction
-  | EWhileFalse hfalse =>
-    cases eq
+  · intro h2
+    have htrue : (bexp⟨{ btrue }⟩) ≃ bexp⟨{ btrue }⟩ := by
+      intro σ; simp [BExp.eval]
+    have : False := true_while_nonterm htrue h2
     contradiction
-  | _ => contradiction
 
 theorem assign_aequiv
   (h : aexp⟨{ x }⟩ ≃ ↑a ) :
