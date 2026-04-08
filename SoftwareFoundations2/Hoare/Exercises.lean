@@ -63,13 +63,7 @@ def swap {n m : ℕ} :
           x = x - y;
       }⟩
     ⦃ x = m ∧ y = n ⦄ := by
-  apply HSeq
-  · apply HSeq
-    · apply HAsgn
-    · apply HAsgn
-  · apply HPreStrengthen
-    · apply HAsgn
-    · verify_assertion
+  sorry
 
 def reduce_to_zero :
   ⊢ ⦃ ⊤ ⦄
@@ -79,13 +73,7 @@ def reduce_to_zero :
           od
       }⟩
     ⦃ x = 0 ⦄ := by
-  · apply HConsequence
-    · apply HWhile ⦃⊤⦄
-      · apply HPreStrengthen
-        · apply HAsgn
-        · verify_assertion
-    · verify_assertion
-    · verify_assertion
+  sorry
 
 def if_minus_plus_dec :
   ⊢ ⦃ ⊤ ⦄
@@ -97,13 +85,7 @@ def if_minus_plus_dec :
           endif
       }⟩
     ⦃ y = x + z ⦄ := by
-  · apply HIf
-    · apply HPreStrengthen
-      · apply HAsgn
-      · verify_assertion
-    · apply HPreStrengthen
-      · apply HAsgn
-      · verify_assertion
+  sorry
 
 def subtract_slowly {m p : ℕ} :
   ⊢ ⦃ ⊤ ⦄
@@ -116,20 +98,7 @@ def subtract_slowly {m p : ℕ} :
           od
       }⟩
     ⦃ z = p - m ⦄ := by
-  apply HSeq
-  · apply HSeq
-    · apply HPostWeaken
-      · apply HWhile ⦃ z = (p + x) - m⦄
-        · apply HSeq
-          · apply HAsgn
-          · apply HPreStrengthen
-            · apply HAsgn
-            · verify_assertion
-      · verify_assertion
-    · apply HAsgn
-  · apply HPreStrengthen
-    · apply HAsgn
-    · verify_assertion
+  sorry
 
 def slow_assignment {m : ℕ} :
   ⊢ ⦃ "x" = m ⦄ -- ignore the apostrophes, fix is TODO for now, but meaning is as usual
@@ -141,20 +110,8 @@ def slow_assignment {m : ℕ} :
           od
       }⟩
     ⦃ "y" = m ⦄ := by
-  apply HSeq
-  · apply HPostWeaken
-    · apply HWhile ⦃ y + x = m ⦄
-      · apply HConsequence
-        · apply HSeq
-          · apply HAsgn
-          · apply HAsgn
-        · verify_assertion
-        · verify_assertion
-    · verify_assertion
-  · apply HConsequence
-    · apply HAsgn
-    · verify_assertion
-    · verify_assertion
+  sorry
+
 
 def div_mod_dec {a b : ℕ} :
   ⊢ ⦃ ⊤ ⦄
