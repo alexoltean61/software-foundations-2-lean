@@ -177,6 +177,7 @@ theorem swap_if_branches :
 theorem true_while
   (h : b ≃ bexp⟨{ btrue }⟩) :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while btrue do skip od }⟩ := by
+  -- Hint: You'll want to use `true_while_nonterm` here.
   intro σ σ'
   apply Iff.intro
   · intro h1
@@ -188,26 +189,11 @@ theorem true_while
     have : False := true_while_nonterm htrue h2
     contradiction
 
--- theorem assign_aequiv
---   (h : aexp⟨{ x }⟩ ≃ ↑a ) :
---   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
---   intro σ σ'
---   constructor
---   · intro h1
---     cases h1
---     case EAsgn n eqn eqs =>
---       subst eqn
---       subst eqs
---       have : σ' = σ := by
---         rw [h σ]
---         simp [State.set_id]
---       subst this
---       exact ESkip
---   · intro h1
---     cases h1
---     apply EAsgn rfl
---     rw [h σ]
---     simp [State.set_id]
+theorem assign_aequiv
+  (h : aexp⟨{ x }⟩ ≃ ↑a ) :
+  ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
+  -- FILL IN HERE
+  sorry
 
 set_option warn.sorry false in
 theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
