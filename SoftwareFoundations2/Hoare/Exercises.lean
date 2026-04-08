@@ -63,13 +63,13 @@ def swap {n m : ℕ} :
           x = x - y;
       }⟩
     ⦃ x = m ∧ y = n ⦄ := by
-      apply HSeq
-      · apply HSeq
-        · apply HAsgn
-        · apply HAsgn
-      · apply HPreStrengthen
-        · apply HAsgn
-        · verify_assertion
+    apply HSeq
+    · apply HSeq
+      · apply HAsgn
+      · apply HAsgn
+    · apply HPreStrengthen
+      · apply HAsgn
+      · verify_assertion
 
 def reduce_to_zero :
   ⊢ ⦃ ⊤ ⦄
@@ -81,9 +81,9 @@ def reduce_to_zero :
     ⦃ x = 0 ⦄ := by
   apply HConsequence
   · apply HWhile ⦃ ⊤ ⦄
-    · apply HPreStrengthen
-      · apply HAsgn
-      · verify_assertion
+    apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
   · verify_assertion
   · verify_assertion
 
@@ -97,13 +97,13 @@ def if_minus_plus_dec :
           endif
       }⟩
     ⦃ y = x + z ⦄ := by
-      apply HIf
-      · apply HPreStrengthen
-        · apply HAsgn
-        · verify_assertion
-      · apply HPreStrengthen
-        · apply HAsgn
-        · verify_assertion
+  apply HIf
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
 
 def subtract_slowly {m p : ℕ} :
   ⊢ ⦃ ⊤ ⦄
@@ -116,20 +116,20 @@ def subtract_slowly {m p : ℕ} :
           od
       }⟩
     ⦃ z = p - m ⦄ := by
-      apply HSeq
-      · apply HSeq
-        · apply HPostWeaken
-          · apply HWhile ⦃ z - x = p - m⦄
-            · apply HSeq
-              · apply HAsgn
-              · apply HPreStrengthen
-                · apply HAsgn
-                · verify_assertion
-          · verify_assertion
+  apply HSeq
+  · apply HSeq
+    · apply HPostWeaken
+      · apply HWhile ⦃ z - x = p - m ⦄
+        apply HSeq
         · apply HAsgn
-      · apply HPreStrengthen
+        apply HPreStrengthen
         · apply HAsgn
-        · verify_assertion
+        verify_assertion
+      verify_assertion
+    apply HAsgn
+  apply HPreStrengthen
+  · apply HAsgn
+  verify_assertion
 
 
 def slow_assignment {m : ℕ} :
@@ -142,18 +142,18 @@ def slow_assignment {m : ℕ} :
           od
       }⟩
     ⦃ "y" = m ⦄ := by
+  apply HSeq
+  · apply HPostWeaken
+    · apply HWhile ⦃ x + y = m ⦄
       apply HSeq
-      · apply HPostWeaken
-        · apply HWhile ⦃ x + y = m ⦄
-          · apply HSeq
-            · apply HAsgn
-            · apply HPreStrengthen
-              · apply HAsgn
-              · verify_assertion
-        · verify_assertion
-      · apply HPreStrengthen
-        · apply HAsgn
-        · verify_assertion
+      · apply HAsgn
+      apply HPreStrengthen
+      · apply HAsgn
+      verify_assertion
+    verify_assertion
+  apply HPreStrengthen
+  · apply HAsgn
+  verify_assertion
 
 def div_mod_dec {a b : ℕ} :
   ⊢ ⦃ ⊤ ⦄
