@@ -20,27 +20,41 @@ theorem fold_constants_bexp_sound : BExp.fold_constants.sound := by
   | BTrue      => rfl
   | BFalse     => rfl
   | BEq a₁ a₂  =>
-      simp only [BExp.eval, BExp.fold_constants, beq_iff_eq]
+      simp only [BExp.eval, BExp.fold_constants]
       have : a₁.eval σ = a₁.fold_constants.eval σ := fold_constants_aexp_sound a₁ σ
       rw [this]; clear this
       have : a₂.eval σ = a₂.fold_constants.eval σ := fold_constants_aexp_sound a₂ σ
       rw [this]; clear this
       split <;> aesop
   | BNeq a₁ a₂  =>
-      -- FILL IN HERE (optional: PR will pass without it)
-      sorry
+      simp only [BExp.eval, BExp.fold_constants]
+      have : a₁.eval σ = a₁.fold_constants.eval σ := fold_constants_aexp_sound a₁ σ
+      rw [this]; clear this
+      have : a₂.eval σ = a₂.fold_constants.eval σ := fold_constants_aexp_sound a₂ σ
+      rw [this]; clear this
+      split <;> aesop
   | BLe a₁ a₂  =>
-      -- FILL IN HERE (optional: PR will pass without it)
-      sorry
+      simp only [BExp.eval, BExp.fold_constants]
+      have : a₁.eval σ = a₁.fold_constants.eval σ := fold_constants_aexp_sound a₁ σ
+      rw [this]; clear this
+      have : a₂.eval σ = a₂.fold_constants.eval σ := fold_constants_aexp_sound a₂ σ
+      rw [this]; clear this
+      split <;> aesop
   | BGt a₁ a₂  =>
-      -- FILL IN HERE (optional: PR will pass without it)
-      sorry
+      simp only [BExp.eval, BExp.fold_constants]
+      have : a₁.eval σ = a₁.fold_constants.eval σ := fold_constants_aexp_sound a₁ σ
+      rw [this]; clear this
+      have : a₂.eval σ = a₂.fold_constants.eval σ := fold_constants_aexp_sound a₂ σ
+      rw [this]; clear this
+      split <;> aesop
   | BNot b ih  =>
-      -- FILL IN HERE (optional: PR will pass without it)
-      sorry
+      simp only [BExp.eval, BExp.fold_constants]
+      rw [ih]
+      split <;> aesop
   | BAnd b₁ b₂ ih₁ ih₂  =>
-      -- FILL IN HERE (optional: PR will pass without it)
-      sorry
+      simp only [BExp.eval, BExp.fold_constants]
+      rw [ih₁, ih₂]
+      split <;> aesop
 
 open ComEval
 
@@ -49,8 +63,15 @@ theorem fold_constants_com_sound : Com.fold_constants.sound := by
   intro c σ₁ σ₂
   induction c generalizing σ₁ σ₂ with
   | CSkip       =>
-      -- FILL IN HERE (optional: PR will pass without it)
-      sorry
+      apply Iff.intro
+      case CSkip.mp =>
+        intro h
+        unfold Com.fold_constants
+        exact h
+      case CSkip.mpr =>
+        intro h
+        unfold Com.fold_constants at h
+        exact h
   | CAsgn x a   =>
       -- FILL IN HERE (optional: PR will pass without it)
       sorry
