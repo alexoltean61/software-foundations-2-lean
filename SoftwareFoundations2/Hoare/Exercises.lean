@@ -63,13 +63,13 @@ def swap {n m : ℕ} :
           x = x - y;
       }⟩
     ⦃ x = m ∧ y = n ⦄ := by
-  apply HSeq
-  · apply HSeq
-    · apply HAsgn
-    apply HAsgn
-  apply HPreStrengthen
-  · apply HAsgn
-  verify_assertion
+    apply HSeq
+    · apply HSeq
+      · apply HAsgn
+      · apply HAsgn
+    · apply HPreStrengthen
+      · apply HAsgn
+      · verify_assertion
 
 def reduce_to_zero :
   ⊢ ⦃ ⊤ ⦄
@@ -80,13 +80,12 @@ def reduce_to_zero :
       }⟩
     ⦃ x = 0 ⦄ := by
   apply HConsequence
-  · apply HWhile ⦃ T ⦄
+  · apply HWhile ⦃ ⊤ ⦄
     apply HPreStrengthen
     · apply HAsgn
-    verify_assertion
+    · verify_assertion
   · verify_assertion
-  apply Assertion.impl_self
-
+  · verify_assertion
 
 def if_minus_plus_dec :
   ⊢ ⦃ ⊤ ⦄
@@ -101,10 +100,10 @@ def if_minus_plus_dec :
   apply HIf
   · apply HPreStrengthen
     · apply HAsgn
-    verify_assertion
-  apply HPreStrengthen
-  · apply HAsgn
-  verify_assertion
+    · verify_assertion
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
 
 def subtract_slowly {m p : ℕ} :
   ⊢ ⦃ ⊤ ⦄
