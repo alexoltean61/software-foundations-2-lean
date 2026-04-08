@@ -119,7 +119,16 @@ def fib : ℕ → ℕ
 
 lemma fib_eqn (n : ℕ) (h : n > 0) :
   fib n + fib (n - 1) = fib (1 + n) := by
-  sorry
+  induction n with
+  | zero => contradiction
+  | succ m ih =>
+      simp only [add_tsub_cancel_right]
+      rw [← Nat.add_assoc]
+      rw [Nat.add_comm (1+m) _ ]
+      rw [← Nat.add_assoc]
+      simp only [Nat.reduceAdd]
+      rw [Nat.add_comm 2 m]
+      rfl
 
 def fibonacci {n f : ℕ} :
   ⊢ ⦃ ⊤ ⦄

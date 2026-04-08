@@ -193,7 +193,23 @@ theorem assign_aequiv
   (h : aexp⟨{ x }⟩ ≃ ↑a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
   -- FILL IN HERE
-  sorry
+  intro σ σ'
+  apply Iff.intro
+  · intro h1
+    cases h1 with
+    | EAsgn heval hset =>
+        subst heval
+        simp only [aequiv, AExp.eval] at h
+        rw [← h σ] at hset
+        simp only [State.set_id] at hset
+        subst hset
+        exact ESkip
+  · intro h1
+    cases h1
+    simp only [aequiv, AExp.eval] at h
+    apply EAsgn
+    · exact h σ
+    · simp [State.set_id]
 
 set_option warn.sorry false in
 theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
