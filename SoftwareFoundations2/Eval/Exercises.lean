@@ -13,17 +13,14 @@ theorem ceval_example1 :
   ]=> σ["z" ↦ 4]["x" ↦ 2] := by
   apply ESeq
   · apply EAsgn
-    · rfl -- eval 2 = eval 2
-    · rfl -- σ[x -> eval 2] = σ[x -> eval 2]
-  · simp only [AExp.eval]
-    apply EIfFalse
+    · rfl
+    · rfl
+  · apply EIfFalse
     · rfl
     · apply EAsgn
-      · unfold AExp.eval
-        rfl -- 4 = 4
-      · apply State.set_comm
-        simp
-
+      · rfl
+      · simp only [AExp.eval]
+        grind
 
 theorem ceval_example2 :
   σ =[
