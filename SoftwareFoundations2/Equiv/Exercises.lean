@@ -120,72 +120,59 @@ theorem identity_assignment :
     simp only [AExp.eval, State.set_id]
 
 theorem skip_right : ⟨{ ↑c; skip }⟩ ≃ ⟨{ ↑c }⟩ := by
-  -- FILL IN HERE
-  intros σ σ'
+  intro σ σ'
   apply Iff.intro
-  intros h
-  cases h with
-  | ESeq h1 h2 =>
-    cases h2
-    exact h1
-  intros h
-  apply ESeq
-  · exact h
-  apply ESkip
-
+  · intro h
+    cases h with
+    | ESeq hc hs =>
+      cases hs
+      exact hc
+  · intro h
+    apply ESeq h ESkip
 
 theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ ↑c₂ }⟩ := by
   intro σ σ'
-  specialize h σ
-  rw [BExp.eval] at h
   apply Iff.intro
-  intros h1
-  cases h1 with
-  | EIfTrue h2 h3 =>
-    rw [h] at h2
-    contradiction
-  | EIfFalse h2 h3 =>
-    exact h3
-  intros h1
-  apply EIfFalse
-  · apply h
-  exact h1
-
+  · intro h1
+    cases h1 with
+    | EIfTrue habs _ =>
+        simp only [bequiv, BExp.eval] at h
+        specialize h σ
+        rw [h] at habs
+        contradiction
+    | EIfFalse _ hc2 => exact hc2
+  · intro h1
+    apply EIfFalse _ h1
+    apply h
 
 theorem swap_if_branches :
     ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃
     ⟨{ if !↑b then ↑c₂ else ↑c₁ endif }⟩ := by
-  -- FILL IN HERE
-  intro σ σ'
+  intros p q
   apply Iff.intro
-  intros h1
-  cases h1 with
-  | EIfTrue h2 h3 =>
-    apply EIfFalse
-    · rw [BExp.eval, h2]
-      trivial
-    exact h3
-  | EIfFalse h2 h3 =>
-    apply EIfTrue
-    · rw [BExp.eval, h2]
-      trivial
-    exact h3
-  intros h1
-  cases h1 with
-  | EIfTrue h2 h3 =>
-    apply EIfFalse
-    · rw [BExp.eval] at h2
-      rw [Bool.not_eq_eq_eq_not, Bool.not_true] at h2
-      exact h2
-    exact h3
-  | EIfFalse h2 h3 =>
-    apply EIfTrue
-    · rw [BExp.eval] at h2
-      rw [Bool.not_eq_eq_eq_not, ←Bool.not_true] at h2
-      exact h2
-    exact h3
-
+  · intro h1
+    cases h1 with
+    | EIfTrue hb hthen =>
+        apply EIfFalse
+        · simp [hb]
+        · exact hthen
+    | EIfFalse hb helse =>
+        apply EIfTrue
+        · simp [hb]
+        · exact helse
+  · intro h2
+    cases h2 with
+    | EIfTrue hb hthen =>
+        apply EIfFalse
+        · simp [BExp.eval] at hb
+          simp [hb]
+        · exact hthen
+    | EIfFalse hb helse =>
+        apply EIfTrue
+        · simp [BExp.eval] at hb
+          simp [hb]
+        · exact helse
 
 theorem true_while
   (h : b ≃ bexp⟨{ btrue }⟩) :
@@ -235,27 +222,18 @@ theorem assign_aequiv
     rw [State.set_id]
 
 theorem equiv_refl : c ≃ c := by
-  intros σ σ'
-  rfl
+  intro σ σ'
+  exact Iff.rfl
 
 @[trans]
 theorem equiv_trans : c₁ ≃ c₂ → c₂ ≃ c₃ → c₁ ≃ c₃ := by
-  -- FILL IN HERE
-  intros h1
-  intros h2
-  intros σ σ'
-  specialize h1 σ σ'
-  specialize h2 σ σ'
-  apply Iff.trans h1 h2
+  intro h12 h23 σ σ'
+  exact Iff.trans (h12 σ σ') (h23 σ σ')
 
 @[symm]
 theorem equiv_symm : c₁ ≃ c₂ → c₂ ≃ c₁ := by
-  -- FILL IN HERE
-  intros h1
-  intros σ σ'
-  specialize h1 σ σ'
-  apply Iff.symm
-  exact h1
+  intro h σ σ'
+  exact Iff.symm (h σ σ')
 
 theorem equiv_congr_asgn {a₁ a₂ : AExp} (h : a₁ ≃ a₂) :
   ⟨{ ↑x = ↑a₁ }⟩ ≃ ⟨{ ↑x = ↑a₂ }⟩ := by

@@ -30,20 +30,13 @@ theorem ceval_example2 :
   ]=> σ["z"↦2]["y"↦1]["x"↦0] := by
   apply ESeq
   · apply EAsgn
-    · rw [AExp.eval]
     · rfl
-  apply ESeq
-  · apply EAsgn
-    · rw [AExp.eval]
     · rfl
-  apply EAsgn
-  · rw [AExp.eval]
-  have diff : ("y" ≠ "x") := by
-    trivial
-  rw [State.set_comm diff]
-  have diff : ("z" ≠ "x") := by
-    trivial
-  rw [State.set_comm diff]
-  have diff : ("z" ≠ "y") := by
-    simp
-  rw [State.set_comm diff]
+  · apply ESeq
+    · apply EAsgn
+      · rfl
+      · rfl
+    · apply EAsgn
+      · rfl
+      · simp only [AExp.eval]
+        grind
