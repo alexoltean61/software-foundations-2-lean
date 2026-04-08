@@ -177,38 +177,15 @@ theorem swap_if_branches :
 theorem true_while
   (h : b ≃ bexp⟨{ btrue }⟩) :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while btrue do skip od }⟩ := by
-  intro σ σ'
-  apply Iff.intro
-  · intro hw
-    have habs := true_while_nonterm h hw
-    contradiction
-  · intro hw
-    have htrue : bexp⟨{btrue}⟩ ≃ bexp⟨{btrue}⟩ := by intro _; rfl
-    have habs := true_while_nonterm htrue hw
-    contradiction
+  -- FILL IN HERE
+  -- Hint: You'll want to use `true_while_nonterm` here.
+  sorry
 
 theorem assign_aequiv
   (h : aexp⟨{ x }⟩ ≃ ↑a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
-  intro σ σ'
-  apply Iff.intro
-  · intro h1
-    cases h1
-    case EAsgn eqn eqs =>
-      subst eqn
-      simp only [aequiv, AExp.eval] at h
-      specialize h σ
-      rw [← h] at eqs
-      simp only [State.set_id] at eqs
-      subst eqs
-      exact ESkip
-  · intro h2
-    cases h2
-    apply EAsgn rfl
-    simp only [aequiv, AExp.eval] at h
-    specialize h σ
-    rw [← h]
-    simp only [State.set_id]
+  -- FILL IN HERE
+  sorry
 
 set_option warn.sorry false in
 theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
@@ -245,18 +222,7 @@ theorem equiv_congr_seqL (h : c₁ ≃ c₁') :
 set_option warn.sorry false in
 theorem equiv_congr_seqR (h : c₂ ≃ c₂') :
   ⟨{ ↑c₁; ↑c₂ }⟩ ≃ ⟨{ ↑c₁; ↑c₂' }⟩ := by
-  intro σ σ'
-  apply Iff.intro
-  · intro hseq
-    cases hseq with
-    | ESeq h1 h2 =>
-      apply ESeq h1
-      exact (h _ _).mp h2
-  · intro hseq
-    cases hseq with
-    | ESeq h1 h2 =>
-      apply ESeq h1
-      exact (h _ _).mpr h2
+  sorry
 
 set_option warn.sorry false in
 theorem bequiv_congr_if (h : b ≃ b') :
