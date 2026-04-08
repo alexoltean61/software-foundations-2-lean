@@ -192,26 +192,49 @@ theorem true_while
 theorem assign_aequiv
   (h : aexp⟨{ x }⟩ ≃ ↑a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
+  -- FILL IN HERE
+  intro σ σ'
+  apply Iff.intro
+  · intro h1
+    cases h1 with
+    | EAsgn heval hset =>
+        subst heval
+        simp only [aequiv, AExp.eval] at h
+        rw [← h σ] at hset
+        simp only [State.set_id] at hset
+        subst hset
+        exact ESkip
+  · intro h1
+    cases h1
+    simp only [aequiv, AExp.eval] at h
+    apply EAsgn
+    · exact h σ
+    · simp [State.set_id]
+
+theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
+  -- FILL IN HERE (optional: PR will pass without it)
   intros σ σ'
   apply Iff.intro
-  intros h1
-  cases h1 with
-  | EAsgn h2 h3 =>
-    specialize h σ
-    rw [← h] at h2
-    rw [h2] at h3
-    rw [AExp.eval] at h3
-    rw [State.set_id] at h3
-    rw [h3]
-    apply ESkip
-  intros h1
-  cases h1 with
-  | ESkip =>
-    apply EAsgn
-    · trivial
-    rw [← h]
-    rw [AExp.eval]
-    rw [State.set_id]
+  · intro h
+    cases h with
+    | ESeq h1 h3 =>
+      cases h1 with
+      | ESeq h1 h2 =>
+        apply ESeq
+        · exact h1
+        · apply ESeq
+          · exact h2
+          · exact h3
+  · intro h
+    cases h with
+    | ESeq h1 h2 =>
+      cases h2 with
+      | ESeq h2 h3 =>
+        apply ESeq
+        · apply ESeq
+          · exact h1
+          · exact h2
+        · exact h3
 
 theorem equiv_refl : c ≃ c := by
   intro σ σ'
@@ -231,217 +254,211 @@ theorem equiv_congr_asgn {a₁ a₂ : AExp} (h : a₁ ≃ a₂) :
   ⟨{ ↑x = ↑a₁ }⟩ ≃ ⟨{ ↑x = ↑a₂ }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
   intros σ σ'
-  specialize h σ
   apply Iff.intro
-  intros h1
-  · apply EAsgn
-    · rw [← h]
-    cases h1 with
-    | EAsgn h2 h3 =>
-      rw [h2] at h3
-      exact h3
-  intros h1
-  apply EAsgn
-  · rw [h]
-  cases h1 with
-  | EAsgn h2 h3 =>
-    rw [h2] at h3
-    assumption
+  · intro h1
+    specialize h σ
+    apply EAsgn
+    · exact h
+    · cases h1 with
+      | EAsgn h2 h3 =>
+        rw [h2] at h3
+        exact h3
+  · intro h1
+    specialize h σ
+    apply EAsgn
+    · symm
+      exact h
+    · cases h1 with
+      | EAsgn h2 h3 =>
+        rw [h2] at h3
+        exact h3
 
 theorem equiv_congr_seqL (h : c₁ ≃ c₁') :
   ⟨{ ↑c₁; ↑c₂ }⟩ ≃ ⟨{ ↑c₁'; ↑c₂ }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
-  intros σ σ'
-  specialize h σ
+  intro σ σ'
   apply Iff.intro
-  intros h1
-  cases h1 with
-  | @ESeq _ _ σ'' _ _ h2 h3 =>
-    apply ESeq
-    · specialize h σ''
-      apply Iff.mp h
-      exact h2
-    apply h3
-  intros h1
-  cases h1 with
-  | @ESeq _ _ σ'' _ _ h2 h3 =>
-    apply ESeq
-    · specialize h σ''
-      apply Iff.mpr h
-      apply h2
-    apply h3
+  · intro h1
+    cases h1 with
+    | ESeq h1 h2 =>
+      apply ESeq
+      · rw [← h]
+        exact h1
+      · exact h2
+  · intro h1
+    cases h1 with
+    | ESeq h1 h2 =>
+      apply ESeq
+      · rw [h]
+        exact h1
+      · exact h2
 
 theorem equiv_congr_seqR (h : c₂ ≃ c₂') :
   ⟨{ ↑c₁; ↑c₂ }⟩ ≃ ⟨{ ↑c₁; ↑c₂' }⟩ := by
   intros σ σ'
   apply Iff.intro
-  intros h1
-  · cases h1 with
-    | @ESeq _ _ σ'' _ _ ha hb =>
-      specialize h σ'' σ'
+  · intro h1
+    cases h1 with
+    | ESeq h1 h2 =>
       apply ESeq
-      · exact ha
-      apply Iff.mp h at hb
-      exact hb
-  intros h1
-  · cases h1 with
-    | @ESeq _ _ σ'' _ _ ha hb =>
-      specialize h σ'' σ'
+      · exact h1
+      · rw [← h]
+        exact h2
+  · intro h1
+    cases h1 with
+    | ESeq h1 h2 =>
       apply ESeq
-      · exact ha
-      apply Iff.mpr h at hb
-      exact hb
-
-
+      · exact h1
+      · rw [h]
+        exact h2
 
 theorem bequiv_congr_if (h : b ≃ b') :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ if ↑b' then ↑c₁ else ↑c₂ endif }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
-  intros σ σ'
+  intro σ σ'
   apply Iff.intro
-  intros h1
-  cases h1 with
-  | EIfTrue h2 h3 =>
+  · intro h1
+    cases h1 with
+    | EIfTrue hb hc =>
       apply EIfTrue
-      · specialize h σ
-        rw [h2] at h
-        symm at h
-        exact h
-      exact h3
-  | EIfFalse h2 h3 =>
+      · rw [← h]
+        exact hb
+      · exact hc
+    | EIfFalse hb hc =>
       apply EIfFalse
-      · specialize h σ
-        rw [h2] at h
-        symm
-        exact h
-      exact h3
-  intros h1
-  cases h1 with
-  | EIfTrue h2 h3 =>
+      · rw [← h]
+        exact hb
+      · exact hc
+  · intro h1
+    cases h1 with
+    | EIfTrue hb hc =>
       apply EIfTrue
-      · specialize h σ
-        rw [h2] at h
-        exact h
-      exact h3
-  | EIfFalse h2 h3 =>
+      · rw [h]
+        exact hb
+      · exact hc
+    | EIfFalse hb hc =>
       apply EIfFalse
-      · specialize h σ
-        rw [h2] at h
-        exact h
-      exact h3
+      · rw [h]
+        exact hb
+      · exact hc
 
 theorem equiv_congr_if (h₁ : c₁ ≃ c₁') (h₂ : c₂ ≃ c₂') :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ if ↑b then ↑c₁' else ↑c₂' endif }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
-  intros σ σ'
+  intro σ σ'
   apply Iff.intro
-  intros h1
-  · cases h1 with
-    | EIfFalse hfalse h2 =>
-      apply EIfFalse
-      · assumption
-      specialize h₂ σ σ'
-      rw [←h₂]
-      exact h2
-    | EIfTrue htrue h2 =>
+  · intro h1
+    cases h1 with
+    | EIfTrue hb hc =>
       apply EIfTrue
-      · assumption
-      specialize h₁ σ σ'
-      rw [←h₁]
-      exact h2
-  intros h1
-  · cases h1 with
-    | EIfFalse hfalse h2 =>
+      · exact hb
+      · rw [← h₁]
+        exact hc
+    | EIfFalse hb hc =>
       apply EIfFalse
-      · assumption
-      specialize h₂ σ σ'
-      rw [h₂]
-      exact h2
-    | EIfTrue htrue h2 =>
+      · exact hb
+      · rw [← h₂]
+        exact hc
+  · intro h1
+    cases h1 with
+    | EIfTrue hb hc =>
       apply EIfTrue
-      · assumption
-      specialize h₁ σ σ'
-      rw [h₁]
-      exact h2
+      · exact hb
+      · rw [h₁]
+        exact hc
+    | EIfFalse hb hc =>
+      apply EIfFalse
+      · exact hb
+      · rw [h₂]
+        exact hc
 
 theorem bequiv_congr_while (h : b ≃ b') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b' do ↑c od }⟩ := by
-  intros σ σ'
+  -- FILL IN HERE (optional: PR will pass without it)
+  intro σ σ'
   apply Iff.intro
-  intros h1
-  · generalize eq : ⟨{ while ↑b do ↑c od }⟩ = loop at h1
+  · generalize eq : ⟨{ while ↑b do ↑c od }⟩ = loop
+    intro h1
     induction h1 with
-    | @EWhileFalse σ'' _ _ habs =>
-        cases eq
-        apply EWhileFalse
-        specialize h σ''
-        rw [← h]
-        apply habs
-    | @EWhileTrue σ'' _ _ _ _ htrue h1 h2 _ ih =>
-        cases eq
-        apply EWhileTrue
-        · specialize h σ''
-          rw [← h]
-          exact htrue
-        · exact h1
-        simp only [forall_const] at ih
-        exact ih
-    | _ => contradiction
-  intros h1
-  generalize eq : ⟨{ while ↑b' do ↑c od }⟩ = loop at h1
-  induction h1 with
-  | EWhileFalse =>
-    apply EWhileFalse
-    aesop
-  | @EWhileTrue σ'' _ _ _ _ htrue h1 h2 _ ih =>
-    cases eq
-    apply EWhileTrue
-    · specialize h σ''
-      rw [h]
-      exact htrue
-    · exact h1
-    simp only [forall_const] at ih
-    exact ih
-  | _ => contradiction
+    | EWhileTrue htrue h1 h2 h3 h4 =>
+      have h5 := h4 eq
+      simp_all only [bequiv, imp_self, Com.CWhile.injEq]
+      obtain ⟨left, right⟩ := eq
+      subst left right
+      apply EWhileTrue
+      · exact htrue
+      · exact h1
+      · exact h5
+    | EWhileFalse hfalse =>
+      simp_all only [bequiv, Com.CWhile.injEq]
+      obtain ⟨left, right⟩ := eq
+      subst left right
+      apply EWhileFalse
+      · exact hfalse
+    | _ => aesop
+  · generalize eq : ⟨{ while ↑b' do ↑c od }⟩ = loop
+    intro h1
+    induction h1 with
+    | EWhileTrue htrue h1 h2 h3 h4 =>
+      have h5 := h4 eq
+      simp_all only [imp_self, Com.CWhile.injEq]
+      obtain ⟨left, right⟩ := eq
+      subst left right
+      rw [← h] at htrue
+      apply EWhileTrue
+      · exact htrue
+      · exact h1
+      · exact h5
+    | EWhileFalse hfalse =>
+      simp_all only [Com.CWhile.injEq]
+      obtain ⟨left, right⟩ := eq
+      subst left right
+      rw [← h] at hfalse
+      apply EWhileFalse
+      · exact hfalse
+    | _ => aesop
 
 theorem equiv_congr_while {c c' : Com} (h : c ≃ c') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b do ↑c' od }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
-  intros σ σ'
+  intro σ σ'
   apply Iff.intro
-  intros h1
-  · generalize eq : ⟨{ while ↑b do ↑c od }⟩ = loop at h1
+  · generalize eq : ⟨{ while ↑b do ↑c od }⟩ = loop
+    intro h1
     induction h1 with
-    | @EWhileTrue σ'' _ σ1 _ _ htrue h1 h2 _ ih =>
-      cases eq
+    | EWhileTrue htrue h1 h2 h3 h4 =>
+      have h5 := h4 eq
+      simp_all only [cequiv, imp_self, Com.CWhile.injEq]
+      obtain ⟨left, right⟩ := eq
+      subst left right
       apply EWhileTrue
-      · assumption
-      · specialize h σ'' σ1
-        rw [h] at h1
-        exact h1
-      simp at ih
-      assumption
+      · exact htrue
+      · exact h1
+      · exact h5
     | EWhileFalse hfalse =>
+      simp_all only [cequiv, Com.CWhile.injEq]
+      obtain ⟨left, right⟩ := eq
+      subst left right
       apply EWhileFalse
-      cases eq
-      assumption
-    | _ => contradiction
-  intros h1
-  · generalize eq : ⟨{ while ↑b do ↑c' od }⟩ = loop at h1
+      · exact hfalse
+    | _ => aesop
+  · generalize eq : ⟨{ while ↑b do ↑c' od }⟩ = loop
+    intro h1
     induction h1 with
-    | @EWhileTrue σ'' _ σ1 _ _ htrue h1 h2 _ ih =>
-      cases eq
+    | EWhileTrue htrue h1 h2 h3 h4 =>
+      have h5 := h4 eq
+      simp_all only [imp_self, Com.CWhile.injEq]
+      obtain ⟨left, right⟩ := eq
+      subst left right
+      rw [← h] at h1
       apply EWhileTrue
-      · assumption
-      · specialize h σ'' σ1
-        rw [← h] at h1
-        exact h1
-      simp at ih
-      assumption
+      · exact htrue
+      · exact h1
+      · exact h5
     | EWhileFalse hfalse =>
+      simp_all only [Com.CWhile.injEq]
+      obtain ⟨left, right⟩ := eq
+      subst left right
       apply EWhileFalse
-      cases eq
-      assumption
-    | _ => contradiction
-
-end PgmEquiv
+      · exact hfalse
+    | _ => aesop
