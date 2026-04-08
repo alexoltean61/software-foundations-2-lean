@@ -28,7 +28,6 @@ theorem ceval_example2 :
     y = 1;
     z = 2
   ]=> σ["z"↦2]["y"↦1]["x"↦0] := by
-  -- FILL IN HERE
   apply ESeq
   · apply EAsgn
     · rfl
@@ -39,5 +38,5 @@ theorem ceval_example2 :
       · rfl
     · apply EAsgn
       · rfl
-      · simp
+      · simp only [AExp.eval]
         grind

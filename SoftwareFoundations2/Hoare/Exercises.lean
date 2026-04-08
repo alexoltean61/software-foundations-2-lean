@@ -24,32 +24,36 @@ lemma helperEq {i : ℕ} (h : 1 ≤ i) : ((i - 1) * (i - 1)) + (4 * i) = (i + 1)
 open ComEval
 open Hoare Proof
 
-def hoare_asgn_wrong : ∃ a, ¬ ⊨ ⦃ ⊤ ⦄ ⟨{ x = ↑a }⟩ ⦃ x = a ⦄ := by
-  exists aexp⟨{x + 1}⟩
+def hoare_asgn_wrong : ∃ a,
+ ¬ ⊨ ⦃ ⊤ ⦄ ⟨{ x = ↑a }⟩ ⦃ x = a ⦄ := by
+  exists aexp⟨{x+1}⟩
   intro h
   unfold Valid at h
   simp only [Assertion.top, Assertion.eq, instEvalVar, ValThunk.ofVar, instEvalAExp,
     ValThunk.ofAExp, AExp.eval, Nat.left_eq_add, one_ne_zero, imp_false, not_true_eq_false] at h
-  specialize h State.init (State.set State.init "x" (aexp⟨{x + 1}⟩.eval State.init))
+  specialize h (State.init) (State.init["x" ↦ 1])
   apply h
   apply EAsgn
-  · rfl
-  · rfl
+  · simp [AExp.eval]
+    rfl
+  · simp [State.init, Inhabited.default]
 
 lemma Assertion.impl_self : P ->> P := by
-  unfold implies
-  intros σ h
-  exact h
+verify_assertion
 
 def Hoare.HPreStrengthen : Proof P' c Q → (P ->> P') → Proof P c Q := by
-  intros h hp
-  apply HConsequence at h
-  exact h Assertion.impl_self hp
+  intro h1 h2
+  · apply HConsequence
+    · exact h1
+    · verify_assertion
+    · verify_assertion
 
 def Hoare.HPostWeaken : Proof P c Q' → (Q' ->> Q) → Proof P c Q := by
-  intros h hq
-  apply HConsequence at h
-  exact h hq Assertion.impl_self
+  intro h1 h2
+  · apply HConsequence
+    · exact h1
+    · verify_assertion
+    · verify_assertion
 
 def swap {n m : ℕ} :
   ⊢ ⦃ x = n ∧ y = m ⦄
@@ -199,14 +203,15 @@ def fib : ℕ → ℕ
 lemma fib_eqn (n : ℕ) (h : n > 0) :
   fib n + fib (n - 1) = fib (1 + n) := by
   induction n with
-  | zero => simp_all only [lt_self_iff_false]
-  | succ m hm =>
-  simp only [add_tsub_cancel_right]
-  nth_rw 3 [Nat.add_comm]
-  rw [Nat.add_assoc]
-  simp only [Nat.reduceAdd]
-  rfl
-
+  | zero => contradiction
+  | succ m ih =>
+      simp only [add_tsub_cancel_right]
+      rw [← Nat.add_assoc]
+      rw [Nat.add_comm (1+m) _ ]
+      rw [← Nat.add_assoc]
+      simp only [Nat.reduceAdd]
+      rw [Nat.add_comm 2 m]
+      rfl
 
 def fibonacci {n f : ℕ} :
   ⊢ ⦃ ⊤ ⦄
