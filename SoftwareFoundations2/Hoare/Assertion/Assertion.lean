@@ -43,15 +43,15 @@ class Eval (α : Type) where
   eval := ValThunk.ofAExp
 
 @[simp]
-abbrev Eval.add (x y : ValThunk) : ValThunk := fun σ => x σ + y σ
+abbrev Eval.add (x y : ValThunk) : ValThunk := fun σ => x σ + y σ 
 @[simp]
-abbrev Eval.sub (x y : ValThunk) : ValThunk := fun σ => x σ - y σ
+abbrev Eval.sub (x y : ValThunk) : ValThunk := fun σ => x σ - y σ 
 @[simp]
-abbrev Eval.mul (x y : ValThunk) : ValThunk := fun σ => x σ * y σ
+abbrev Eval.mul (x y : ValThunk) : ValThunk := fun σ => x σ * y σ 
 @[simp]
 abbrev Eval.div (x y : ValThunk) : ValThunk := fun σ => x σ / y σ
 @[simp]
-abbrev Eval.mod (x y : ValThunk) : ValThunk := fun σ => x σ % y σ
+abbrev Eval.mod (x y : ValThunk) : ValThunk := fun σ => x σ % y σ 
 
 @[simp] abbrev toAssert : (State → Prop) → Assertion   := id
 
