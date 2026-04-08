@@ -2,6 +2,8 @@ import SoftwareFoundations2.Equiv.Def
 
 open ComEval
 
+namespace PgmEquiv
+
 variable {c c₁ c₂ c₃ : Com}
 variable {b : BExp}
 
@@ -122,9 +124,9 @@ theorem skip_right : ⟨{ ↑c; skip }⟩ ≃ ⟨{ ↑c }⟩ := by
   apply Iff.intro
   · intro h
     cases h with
-    | ESeq h1 h2 =>
-        cases h2
-        exact h1
+    | ESeq hc hs =>
+      cases hs
+      exact hc
   · intro h
     apply ESeq h ESkip
 
@@ -139,38 +141,38 @@ theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
         specialize h σ
         rw [h] at habs
         contradiction
-    | EIfFalse _ h2 =>
-        exact h2
+    | EIfFalse _ hc2 => exact hc2
   · intro h1
-    apply EIfFalse
-    · apply h
-    · exact h1
+    apply EIfFalse _ h1
+    apply h
 
 theorem swap_if_branches :
     ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃
     ⟨{ if !↑b then ↑c₂ else ↑c₁ endif }⟩ := by
-  intro σ σ'
-  constructor
-  · intro h
-    cases h with
-    | EIfTrue hb hc1 =>
+  intros p q
+  apply Iff.intro
+  · intro h1
+    cases h1 with
+    | EIfTrue hb hthen =>
         apply EIfFalse
-        · simpa [BExp.eval] using hb
-        · exact hc1
-    | EIfFalse hb hc2 =>
+        · simp [hb]
+        · exact hthen
+    | EIfFalse hb helse =>
         apply EIfTrue
-        · simpa [BExp.eval] using hb
-        · exact hc2
-  · intro h
-    cases h with
-    | EIfTrue hb hc2 =>
+        · simp [hb]
+        · exact helse
+  · intro h2
+    cases h2 with
+    | EIfTrue hb hthen =>
         apply EIfFalse
-        · simpa [BExp.eval] using hb
-        · exact hc2
-    | EIfFalse hb hc1 =>
+        · simp [BExp.eval] at hb
+          simp [hb]
+        · exact hthen
+    | EIfFalse hb helse =>
         apply EIfTrue
-        · simpa [BExp.eval] using hb
-        · exact hc1
+        · simp [BExp.eval] at hb
+          simp [hb]
+        · exact helse
 
 theorem true_while
   (h : b ≃ bexp⟨{ btrue }⟩) :
@@ -215,29 +217,17 @@ theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {
 @[refl]
 theorem equiv_refl : c ≃ c := by
   intro σ σ'
-  constructor
-  · intro h; exact h
-  · intro h; exact h
+  exact Iff.rfl
 
 @[trans]
 theorem equiv_trans : c₁ ≃ c₂ → c₂ ≃ c₃ → c₁ ≃ c₃ := by
   intro h12 h23 σ σ'
-  constructor
-  · intro h1
-    have h2 := (h12 σ σ').mp h1
-    exact (h23 σ σ').mp h2
-  · intro h3
-    have h2 := (h23 σ σ').mpr h3
-    exact (h12 σ σ').mpr h2
+  exact Iff.trans (h12 σ σ') (h23 σ σ')
 
 @[symm]
 theorem equiv_symm : c₁ ≃ c₂ → c₂ ≃ c₁ := by
   intro h σ σ'
-  constructor
-  · intro h2
-    exact (h σ σ').mpr h2
-  · intro h1
-    exact (h σ σ').mp h1
+  exact Iff.symm (h σ σ')
 
 set_option warn.sorry false in
 theorem equiv_congr_asgn {a₁ a₂ : AExp} (h : a₁ ≃ a₂) :
@@ -279,3 +269,5 @@ theorem equiv_congr_while {c c' : Com} (h : c ≃ c') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b do ↑c' od }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
   sorry
+
+end PgmEquiv

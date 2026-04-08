@@ -1,5 +1,7 @@
 import SoftwareFoundations2.Equiv
 
+open PgmEquiv
+
 /-- A transformation of arithmetic expressions maps `AExp`s to `AExp`s -/
 def ATrans : Type := AExp → AExp
 
