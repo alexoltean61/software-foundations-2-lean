@@ -2,6 +2,8 @@ import SoftwareFoundations2.Equiv.Def
 
 open ComEval
 
+namespace PgmEquiv
+
 variable {c c₁ c₂ c₃ : Com}
 variable {b : BExp}
 
@@ -122,12 +124,11 @@ theorem skip_right : ⟨{ ↑c; skip }⟩ ≃ ⟨{ ↑c }⟩ := by
   apply Iff.intro
   · intro h
     cases h with
-    | ESeq h1 h2 =>
-        cases h2
-        exact h1
+    | ESeq hc hs =>
+      cases hs
+      exact hc
   · intro h
-    apply ESeq h
-    exact ESkip
+    apply ESeq h ESkip
 
 theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ ↑c₂ }⟩ := by
@@ -140,38 +141,38 @@ theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
         specialize h σ
         rw [h] at habs
         contradiction
-    | EIfFalse _ hc2 =>
-        exact hc2
-  · intro h2
-    apply EIfFalse _ h2
-    simp only [bequiv, BExp.eval] at h
-    exact h σ
+    | EIfFalse _ hc2 => exact hc2
+  · intro h1
+    apply EIfFalse _ h1
+    apply h
 
 theorem swap_if_branches :
     ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃
     ⟨{ if !↑b then ↑c₂ else ↑c₁ endif }⟩ := by
-  intro σ σ'
+  intros p q
   apply Iff.intro
-  · intro h
-    cases h with
-    | EIfTrue hb hc1 =>
+  · intro h1
+    cases h1 with
+    | EIfTrue hb hthen =>
         apply EIfFalse
-        · simp [BExp.eval, hb]
-        · exact hc1
-    | EIfFalse hb hc2 =>
+        · simp [hb]
+        · exact hthen
+    | EIfFalse hb helse =>
         apply EIfTrue
-        · simp [BExp.eval, hb]
-        · exact hc2
-  · intro h
-    cases h with
-    | EIfTrue hnotb hc2 =>
+        · simp [hb]
+        · exact helse
+  · intro h2
+    cases h2 with
+    | EIfTrue hb hthen =>
         apply EIfFalse
-        · simp? [BExp.eval] at hnotb; exact hnotb
-        · exact hc2
-    | EIfFalse hnotb hc1 =>
+        · simp [BExp.eval] at hb
+          simp [hb]
+        · exact hthen
+    | EIfFalse hb helse =>
         apply EIfTrue
-        · simp? [BExp.eval] at hnotb; exact hnotb
-        · exact hc1
+        · simp [BExp.eval] at hb
+          simp [hb]
+        · exact helse
 
 theorem true_while
   (h : b ≃ bexp⟨{ btrue }⟩) :
@@ -280,3 +281,5 @@ theorem equiv_congr_while {c c' : Com} (h : c ≃ c') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b do ↑c' od }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
   sorry
+
+end PgmEquiv
