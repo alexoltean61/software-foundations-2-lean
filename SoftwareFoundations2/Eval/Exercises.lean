@@ -34,11 +34,9 @@ theorem ceval_example2 :
     · rfl
   · apply ESeq
     · apply EAsgn
-      · simp only [AExp.eval]
-        rfl
-      · simp [AExp.eval]
-        rfl
+      · rfl
+      · rfl
     · apply EAsgn
+      · rfl
       · simp only [AExp.eval]
-        rfl
-      · grind
+        grind
