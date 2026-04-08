@@ -12,6 +12,7 @@ theorem bequiv_example : bexp⟨{ x - x == 0 }⟩ ≃ bexp⟨{ btrue }⟩ := by
   simp [bequiv, BExp.eval]
 
 theorem skip_left : ⟨{ skip; ↑c }⟩ ≃ ⟨{ ↑c }⟩ := by
+  -- WORKED IN CLASS
   intro σ σ'
   apply Iff.intro
   · intro h
@@ -59,6 +60,7 @@ theorem false_while (h : b ≃ bexp⟨{ bfalse }⟩) :
 theorem true_while_nonterm
   (h : b ≃ bexp⟨{ btrue }⟩) :
   ¬ σ =[ while ↑b do ↑c od ]=> σ' := by
+  -- WORKED IN CLASS
   generalize eq : ⟨{ while ↑b do ↑c od }⟩ = loop
   intro habs
   induction habs with
@@ -77,6 +79,7 @@ theorem loop_unrolling :
         skip;
       endif
   }⟩ := by
+  -- WORKED IN CLASS
   intro σ σ'
   apply Iff.intro
   · intro h
@@ -144,121 +147,79 @@ theorem false_if (h : b ≃ bexp⟨{ bfalse }⟩) :
 theorem swap_if_branches :
     ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃
     ⟨{ if !↑b then ↑c₂ else ↑c₁ endif }⟩ := by
-  intro σ σ'
-  apply Iff.intro
-  · intro h
-    cases h
-    case EIfTrue hb hc =>
-      apply EIfFalse
-      · simp [hb]
-      · exact hc
-    case EIfFalse hb hc =>
-      apply EIfTrue
-      · simp [hb]
-      · exact hc
-  · intro h
-    cases h
-    case EIfTrue hb hc =>
-      apply EIfFalse
-      · simp only [BExp.eval, Bool.not_eq_eq_eq_not, Bool.not_true] at hb; exact hb
-      · exact hc
-    case EIfFalse hb hc =>
-      apply EIfTrue
-      · simp only [BExp.eval, Bool.not_eq_eq_eq_not, Bool.not_false] at hb; exact hb
-      · exact hc
+  -- FILL IN HERE
+  sorry
 
 theorem true_while
   (h : b ≃ bexp⟨{ btrue }⟩) :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while btrue do skip od }⟩ := by
-  intro σ σ'
-  apply Iff.intro
-  · intro h1
-    have contra := true_while_nonterm h h1
-    contradiction
-  · intro h2
-    have h_true : bexp⟨{ btrue }⟩ ≃ bexp⟨{ btrue }⟩ := by intro _; rfl
-    have contra := true_while_nonterm h_true h2
-    contradiction
+  -- FILL IN HERE
+  -- Hint: You'll want to use `true_while_nonterm` here.
+  sorry
 
 theorem assign_aequiv
   (h : aexp⟨{ x }⟩ ≃ ↑a ) :
   ⟨{ x = ↑a }⟩ ≃ ⟨{ skip }⟩ := by
-  intro σ σ'
-  apply Iff.intro
-  · intro h1
-    cases h1 with
-    | EAsgn eqn eqs =>
-      subst eqn
-      have hσ := h σ
-      rw [← hσ] at eqs
-      simp only [AExp.eval, State.set_id] at eqs
-      subst eqs
-      exact ESkip
-  · intro h2
-    cases h2
-    apply EAsgn rfl
-    have hσ := h σ
-    rw [← hσ]
-    simp only [AExp.eval, State.set_id]
-
-@[refl]
-theorem equiv_refl : c ≃ c := by
-  intro σ σ'
-  rfl
-
-@[trans]
-theorem equiv_trans : c₁ ≃ c₂ → c₂ ≃ c₃ → c₁ ≃ c₃ := by
-  intro h1 h2 σ σ'
-  exact Iff.trans (h1 σ σ') (h2 σ σ')
-
-@[symm]
-theorem equiv_symm : c₁ ≃ c₂ → c₂ ≃ c₁ := by
-  intro h σ σ'
-  exact Iff.symm (h σ σ')
+  -- FILL IN HERE
+  sorry
 
 set_option warn.sorry false in
 theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
-  -- optional
+  -- FILL IN HERE (optional: PR will pass without it)
+  sorry
+
+@[refl]
+theorem equiv_refl : c ≃ c := by
+  -- FILL IN HERE
+  sorry
+
+@[trans]
+theorem equiv_trans : c₁ ≃ c₂ → c₂ ≃ c₃ → c₁ ≃ c₃ := by
+  -- FILL IN HERE
+  sorry
+
+@[symm]
+theorem equiv_symm : c₁ ≃ c₂ → c₂ ≃ c₁ := by
+  -- FILL IN HERE
   sorry
 
 set_option warn.sorry false in
 theorem equiv_congr_asgn {a₁ a₂ : AExp} (h : a₁ ≃ a₂) :
   ⟨{ ↑x = ↑a₁ }⟩ ≃ ⟨{ ↑x = ↑a₂ }⟩ := by
-  -- optional
+  -- FILL IN HERE (optional: PR will pass without it)
   sorry
 
 set_option warn.sorry false in
 theorem equiv_congr_seqL (h : c₁ ≃ c₁') :
   ⟨{ ↑c₁; ↑c₂ }⟩ ≃ ⟨{ ↑c₁'; ↑c₂ }⟩ := by
-  -- optional
+  -- FILL IN HERE (optional: PR will pass without it)
   sorry
 
 set_option warn.sorry false in
 theorem equiv_congr_seqR (h : c₂ ≃ c₂') :
   ⟨{ ↑c₁; ↑c₂ }⟩ ≃ ⟨{ ↑c₁; ↑c₂' }⟩ := by
-  -- optional
   sorry
 
 set_option warn.sorry false in
 theorem bequiv_congr_if (h : b ≃ b') :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ if ↑b' then ↑c₁ else ↑c₂ endif }⟩ := by
-  -- optional
+  -- FILL IN HERE (optional: PR will pass without it)
   sorry
 
 set_option warn.sorry false in
 theorem equiv_congr_if (h₁ : c₁ ≃ c₁') (h₂ : c₂ ≃ c₂') :
   ⟨{ if ↑b then ↑c₁ else ↑c₂ endif }⟩ ≃ ⟨{ if ↑b then ↑c₁' else ↑c₂' endif }⟩ := by
-  -- optional
+  -- FILL IN HERE (optional: PR will pass without it)
   sorry
 
 set_option warn.sorry false in
 theorem bequiv_congr_while (h : b ≃ b') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b' do ↑c od }⟩ := by
-  -- optional
+  -- FILL IN HERE (optional: PR will pass without it)
   sorry
 
 set_option warn.sorry false in
 theorem equiv_congr_while {c c' : Com} (h : c ≃ c') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b do ↑c' od }⟩ := by
-  -- optional
+  -- FILL IN HERE (optional: PR will pass without it)
   sorry
