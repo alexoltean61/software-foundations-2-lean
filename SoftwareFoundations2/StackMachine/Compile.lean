@@ -6,23 +6,27 @@ def AExp.compile : AExp → List Instruction
   | ANum n       => [ PUSH n ]
   | AId x        => [ LOAD x ]
   | AMult a1 a2  => a1.compile ++ a2.compile ++ [ MUL ]
-  | AMinus a1 a2 => sorry
-  | APlus a1 a2  => sorry
+  | AMinus a1 a2 => a1.compile ++ a2.compile ++ [ SUB ]
+  | APlus a1 a2  => a1.compile ++ a2.compile ++ [ ADD ]
 
 def BExp.compile : BExp → List Instruction
   | BTrue        => [ PUSH 1 ]
   | BFalse       => [ PUSH 0 ]
   | BEq a1 a2    => a1.compile ++ a2.compile ++ [ EQ ]
-  | BNeq a1 a2   => sorry
+  | BNeq a1 a2   => a1.compile ++ a2.compile ++ [ EQ, ISZERO ]
   | BLe a1 a2    => a1.compile ++ a2.compile ++ [ .LE ]
-  | BGt a1 a2    => sorry
-  | BNot b       => sorry
-  | BAnd b1 b2   => sorry
+  | BGt a1 a2    => a1.compile ++ a2.compile ++ [ .LE, ISZERO ]
+  | BNot b       => b.compile ++ [ ISZERO ]
+  -- | BAnd b1 b2   => b1.compile ++ [ ISZERO ] ++ b2.compile ++ [ ISZERO, ADD, ISZERO ]
+  | BAnd b1 b2   => b1.compile ++ b2.compile ++ [ MUL ]
 
 def Com.compileOffset (pcOffset : ℕ) : Com → List Instruction
-  | CSkip       => sorry
-  | CAsgn x a   => sorry
-  | CSeq c1 c2  => sorry
+  | CSkip       => [ NOP ]
+  | CAsgn x a   => a.compile ++ [ STORE x ]
+  | CSeq c1 c2  =>
+      let c1Code := c1.compileOffset pcOffset
+      let c2Code := c2.compileOffset (pcOffset + c1Code.length)
+      c1Code ++ c2Code
   | CIf b c1 c2 =>
       -- See comment below for stack layout
       let bCode := b.compile
@@ -69,7 +73,7 @@ def Com.compile (com : Com) := com.compileOffset 0 ++ [.STOP]
       bCode            pcOffset                                              { == pcCheck }
       pcJumpTrue       pcOffset + bCode.length
       JUMPI            pcOffset + bCode.length + 1
-      pcJumpPost       pcOffset + bCode.length + 2      
+      pcJumpPost       pcOffset + bCode.length + 2
       JUMP             pcOffset + bCode.length + 3
       l                pcOffset + bCode.length + 4                           { == pcJumpTrue }
       pcCheck          pcOffset + bCode.length + l.length + 4
