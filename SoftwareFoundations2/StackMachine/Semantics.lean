@@ -44,9 +44,11 @@ def step (μ : MachineState) : ExecutionState := do
       let ⟨n1, n2, s⟩ ← stackPeek2 μ
       .ok <| replaceStackAndIncrPC μ ((n2 + n1) :: s)
   | SUB      =>
-      sorry
+      let ⟨n1, n2, s⟩ ← stackPeek2 μ
+      .ok <| replaceStackAndIncrPC μ ((n2 - n1) :: s)
   | MUL      =>
-      sorry
+      let ⟨n1, n2, s⟩ ← stackPeek2 μ
+      .ok <| replaceStackAndIncrPC μ ((n2 * n1) :: s)
   | EQ       =>
       let ⟨n1, n2, s⟩ ← stackPeek2 μ
       if n2 == n1 then
@@ -54,9 +56,17 @@ def step (μ : MachineState) : ExecutionState := do
       else
         .ok <| replaceStackAndIncrPC μ (0 :: s)
   | .LE       =>
-      sorry
+      let ⟨n1, n2, s⟩ ← stackPeek2 μ
+      if n2 <= n1 then
+        .ok <| replaceStackAndIncrPC μ (1 :: s)
+      else
+        .ok <| replaceStackAndIncrPC μ (0 :: s)
   | .ISZERO     =>
-      sorry
+      let ⟨n, s⟩ ← stackPeek1 μ
+      if n == 0 then
+        .ok <| replaceStackAndIncrPC μ (1 :: s)
+      else
+        .ok <| replaceStackAndIncrPC μ (0 :: s)
   | JUMP =>
       let ⟨pc, s⟩ ← stackPeek1 μ
       .ok <| { μ with pc := pc, stack := s }
@@ -113,13 +123,9 @@ def execute! (fuel : ℕ) (μ : MachineState) : MachineState :=
   | .ok e' => e'
   | .error e => panic! s!"Execution failed with reason: {e}"
 
-/-
-  Uncomment after filling sorries above:
-
 #eval execute! 1000 {
   stack     := [],
   code  := [PUSH 0, PUSH 1, MUL, PUSH 6, ADD, LOAD "x", MUL, PUSH 900, LE],
   pc    := 0,
   mem   := [ "x" ↦ 161 ],
 }
--/
