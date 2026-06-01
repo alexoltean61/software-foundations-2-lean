@@ -15,7 +15,6 @@ attribute [local simp] fetchInstr
 attribute [local simp] stackPeek2
 attribute [local simp] stackPeek1
 
-set_option warn.sorry false in
 lemma isErrorLemma {err st'} : ¬ Reachable (.error err) st' := by
   intros h
   generalize eq : (Except.error err) = st at h
@@ -25,7 +24,6 @@ lemma isErrorLemma {err st'} : ¬ Reachable (.error err) st' := by
     cases eq
     simp only [imp_false, not_true_eq_false] at ih1
 
-set_option warn.sorry false in
 lemma isOOFLemma {st} : ¬ Reachable st (.error .OutOfFuel) := by
   intros h
   generalize eq : (Except.error ExecutionException.OutOfFuel) = st' at h
@@ -38,7 +36,6 @@ lemma isOOFLemma {st} : ¬ Reachable st (.error .OutOfFuel) := by
     cases eq
     simp only [imp_false, not_true_eq_false] at ih2
 
-set_option warn.sorry false in
 lemma isFinalStepLemma {μ st} (h : isFinal (.ok μ)) :
     step μ = st → isError st := by
   rw [isFinal] at h
@@ -47,7 +44,6 @@ lemma isFinalStepLemma {μ st} (h : isFinal (.ok μ)) :
   rw [←h1, isError]
   trivial
 
-set_option warn.sorry false in
 lemma isFinalLemma {st st'} (h : isFinal st) :
     Reachable st st' → isError st' := by
   intro h
@@ -62,7 +58,6 @@ lemma isFinalLemma {st st'} (h : isFinal st) :
       have := @isErrorLemma e stx
       contradiction
 
-set_option warn.sorry false in
 lemma executeFinal {μ st fuel} (h : isFinal (.ok μ)) :
     execute fuel μ = st → st = .ok μ := by
   intro h1
@@ -71,7 +66,6 @@ lemma executeFinal {μ st fuel} (h : isFinal (.ok μ)) :
   symm
   assumption
 
-set_option warn.sorry false in
 lemma executeExtend {μ μ' fuel} (h : step μ = .ok μ') :
     execute (fuel + 1) μ = execute fuel μ' := by
   rw [execute]
@@ -83,7 +77,6 @@ lemma executeExtend {μ μ' fuel} (h : step μ = .ok μ') :
     · simp [hf]
   · simp [step, hx, Bind.bind, Except.bind] at h
 
-set_option warn.sorry false in
 lemma executeStepFinal {μ st} (h1 : isFinal st) (h2 : step μ = st) :
     execute 1 μ = st := by
     rw [execute]
@@ -130,7 +123,6 @@ lemma executeLemmaAux {n : Nat} {μ μ' : MachineState} (h : Reachable (.ok μ) 
       rw [hm2] at hm1
       use m1
 
-set_option warn.sorry false in
 /-- Hard exercise, you will likely need the lemmas above,
     and possibly additional intermediary results. -/
 lemma executeLemma {μ st} (h1 : Reachable (.ok μ) st) (h2 : isFinal st) :

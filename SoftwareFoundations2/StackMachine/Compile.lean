@@ -50,7 +50,7 @@ def Com.compileOffset (pcOffset : ℕ) : Com → List Instruction
 def Com.compile (com : Com) := com.compileOffset 0 ++ [.STOP]
 
 /-
-  Stack layout for a compiled `if b then l1 else l2`.
+  Code layout for a compiled `if b then l1 else l2`.
   First column: code section;
   Second column: offset within the code.
 
@@ -67,7 +67,7 @@ def Com.compile (com : Com) := com.compileOffset 0 ++ [.STOP]
       JUMP             pcOffset + bCode.length + l1.length + l2.length + 7
                        pcOffset + bCode.length + l1.length + l2.length + 8   { == pcJumpPost }
 
-  Stack layout for a compiled `while b do l od`:
+  Code layout for a compiled `while b do l od`:
 
       bCode            pcOffset                                              { == pcCheck }
       pcJumpTrue       pcOffset + bCode.length
@@ -79,9 +79,6 @@ def Com.compile (com : Com) := com.compileOffset 0 ++ [.STOP]
       JUMP             pcOffset + bCode.length + l.length + 5
                        pcOffset + bCode.length + l.length + 6                { == pcJumpPost }
 -/
-
-/-
-  Uncomment after filling all sorries:
 
 #eval aexp⟨{ (x * 2) - 1 + 30 }⟩.compile
 #eval aexp⟨{ x - (2 * y) }⟩.compile
@@ -139,4 +136,3 @@ def Com.compile (com : Com) := com.compileOffset 0 ++ [.STOP]
   pc    := 0,
   mem   := [ "x" ↦ 161 ],
 })
--/
