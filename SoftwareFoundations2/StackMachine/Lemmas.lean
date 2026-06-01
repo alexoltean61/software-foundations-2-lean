@@ -90,9 +90,9 @@ lemma executeStepFinal {μ st} (h1 : isFinal st) (h2 : step μ = st) :
     by_cases hx : μ.pc < μ.code.length
     · have hf : ¬ isFinal (Except.ok μ) := by
         rw [isFinal]
-        contrapose hx
-        rw [←hx]
-        simp only [Nat.lt_irrefl, not_false_eq_true]
+        intro habs
+        rw [habs] at hx
+        exact Nat.lt_irrefl μ.code.length hx
       rw [h2]
       simp only [hf, ↓reduceIte]
       cases st with
