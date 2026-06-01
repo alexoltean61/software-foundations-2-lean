@@ -203,328 +203,181 @@ lemma Com.compileCorrectAux (pgm σ σ' stack pre suf) (h : σ =[pgm]=> σ') :
   Reachable
     (.ok ⟨pre ++ pgm.compileOffset pre.length ++ suf, stack, σ, pre.length⟩)
     (.ok ⟨pre ++ pgm.compileOffset pre.length ++ suf, stack, σ', (pre ++ pgm.compileOffset pre.length).length⟩) := by
-    induction pgm generalizing stack pre suf σ σ' with
-    | CSkip =>
+  induction h generalizing pre suf with
+  | ESkip =>
+      simp only [Com.compileOffset, List.append_assoc, List.cons_append, List.nil_append,
+        List.length_append, List.length_cons, List.length_nil, Nat.zero_add]
       apply Reachable.step
-      simp [step, fetchInstr, replaceStackAndIncrPC, incrPC, compileOffset]
-      cases h ; rfl
-    | CAsgn x a =>
-      simp only [compileOffset]
-      rw [List.append_assoc, List.append_assoc]
-      apply Reachable.trans (AExp.compileCorrectAux a)
-      apply Reachable.step
-      simp only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append, List.cons_append, List.nil_append,
-    List.length_cons, Nat.add_lt_add_iff_left, Nat.lt_add_right_iff_pos, Nat.zero_lt_succ, ↓reduceDIte,
-    Nat.le_add_right, List.getElem_append_right, Nat.add_sub_cancel_left, Nat.le_refl, Nat.sub_self,
-    List.getElem_cons_zero, replaceStackAndIncrPC, incrPC, stackPeek1, replaceMemStackAndIncrPC, beq_iff_eq, gt_iff_lt,
-    List.length_nil, Nat.zero_add, Except.ok.injEq, MachineState.mk.injEq, true_and]
-      cases h with
-      | EAsgn hv hs =>
-        rw [hv] at hs
-        exact And.intro (symm hs) (by omega)
-    | CSeq c1 c2 ih1 ih2 =>
-      simp only [compileOffset, List.append_assoc, List.length_append]
-      simp only [List.append_assoc] at *
-      cases h with
-      | ESeq c1 c2 =>
-        apply Reachable.trans (ih1 _ _ _ _ _ c1)
-        rw [←List.append_assoc, ←Nat.add_assoc, ←List.length_append, ←List.length_append]
-        exact ih2 _ _ _ _ _ c2
-    | CIf b c1 c2 ih1 ih2 =>
-      simp only [compileOffset, List.append_assoc, List.cons_append, List.nil_append,
+      simp [step, fetchInstr, Except.instMonad, Except.bind, incrPC]
+  | EAsgn h1 h2 =>
+      subst h1
+      subst h2
+      simp only [Com.compileOffset, List.append_assoc, List.cons_append, List.nil_append,
+        List.length_append, List.length_cons, List.length_nil, Nat.zero_add]
+      apply Reachable.trans
+      · apply AExp.compileCorrectAux
+      · apply Reachable.step
+        simp [step, fetchInstr, Except.instMonad, Except.bind, stackPeek1, replaceMemStackAndIncrPC, replaceStackAndIncrPC, incrPC]
+        rfl
+  | ESeq c1 c2 ih1 ih2 =>
+      simp only [Com.compileOffset, List.append_assoc, List.length_append]
+      apply Reachable.trans
+      · rw [←List.append_assoc]
+        apply ih1
+      · rename_i c₁ _ c₂ _
+        specialize ih2 (pre ++ c₁.compileOffset pre.length) suf
+        simp_all only [List.append_assoc, List.length_append]
+  | EWhileTrue htrue h1 h2 ih1 ih2 =>
+      rename_i c _ b _
+      simp only [Com.compileOffset, List.append_assoc, List.cons_append, List.nil_append,
         List.length_append, List.length_cons, List.length_nil, Nat.zero_add, Nat.reduceAdd]
-      apply Reachable.trans (BExp.compileCorrectAux b)
-      rw [←List.append_assoc pre b.compile]
-      by_cases hx : BExp.eval σ b = true
-      · apply Reachable.trans (Reachable.step rfl)
-        simp only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-          List.append_assoc, List.length_cons, Nat.add_lt_add_iff_left, Nat.lt_add_right_iff_pos,
-          Nat.lt_add_left_iff_pos, Nat.zero_lt_succ, ↓reduceDIte, Nat.le_add_right,
-          List.getElem_append_right, Nat.add_sub_cancel_left, Nat.le_refl, Nat.sub_self,
-          List.getElem_cons_zero, Bool.toValue, hx, replaceStackAndIncrPC, incrPC, stackPeek2,
-          beq_iff_eq, gt_iff_lt]
-        apply Reachable.trans (Reachable.step rfl)
-        simp +arith only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-          List.length_cons, ↓reduceDIte, List.getElem_append_right, replaceStackAndIncrPC, incrPC,
-          stackPeek2, Nat.le_add_left, Nat.sub_eq_zero_of_le, Nat.one_mul, beq_iff_eq,
-          Nat.right_eq_add, Nat.add_eq_zero_iff, List.length_eq_zero_iff, reduceCtorEq, and_false,
-          ↓reduceIte, gt_iff_lt, Nat.lt_add_one]
-        simp +arith only [List.getElem_append, ← List.append_assoc]
-        have h' : ¬ (pre.length + b.compile.length + 1 - pre.length < b.compile.length) := by omega
-        have h2 : pre.length + b.compile.length + 1 - pre.length - b.compile.length = 1 := by omega
-        simp only [h', ↓reduceDIte, h2, List.getElem_cons_succ, List.getElem_cons_zero,
-          List.append_assoc]
-        cases h with
-        | EIfTrue hv c' =>
-          simp only[← List.append_assoc]
-          convert Reachable.trans (ih1 _ _ _ _ _ c') _ using 1
-          · rw [← List.singleton_append]
-            nth_rewrite 2 [←List.singleton_append]
-            nth_rewrite 3 [←List.singleton_append]
-            nth_rewrite 4 [←List.singleton_append]
-            have : 4 = ([PUSH ((pre ++ b.compile).length + 4)] ++ [JUMPI] ++
-                [PUSH ((pre ++ b.compile ++ compileOffset ((pre ++ b.compile).length + 4) c1).length + 6)] ++
-              [JUMP]).length := by
-              simp
-            nth_rewrite 9 [this]
-            nth_rewrite 3 [this]
-            simp only [← List.append_assoc]
-            simp only [← List.length_append]
-            have : pre ++ b.compile ++ [PUSH ((pre ++ b.compile).length + 4)] ++ [JUMPI] ++
-                [PUSH ((pre ++ b.compile ++ compileOffset ((pre ++ b.compile).length + 4) c1).length + 6)] ++
-              [JUMP] = pre ++ b.compile ++
-                  ([PUSH ((pre ++ b.compile).length + 4)] ++ [JUMPI] ++
-                      [PUSH ((pre ++ b.compile ++ compileOffset ((pre ++ b.compile).length + 4) c1).length + 6)] ++
-                    [JUMP]) := by simp
-            rw [this]
-          · apply Reachable.trans (Reachable.step rfl)
-            simp only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-              List.cons_append, List.nil_append, List.append_assoc, List.length_cons,
-              List.length_nil, Nat.zero_add, Nat.reduceAdd, Nat.add_lt_add_iff_left,
-              Nat.add_lt_add_iff_right, Nat.lt_add_right_iff_pos, Nat.lt_add_left_iff_pos,
-              Nat.zero_lt_succ, ↓reduceDIte, Nat.le_add_right, List.getElem_append_right,
-              Nat.add_sub_cancel_left, List.getElem_cons_succ, Nat.le_refl, Nat.sub_self,
-              List.getElem_cons_zero, replaceStackAndIncrPC, incrPC, stackPeek2, beq_iff_eq,
-              gt_iff_lt]
-            apply Reachable.step
-            simp +arith [step, fetchInstr, replaceStackAndIncrPC, incrPC, stackPeek2, stackPeek1, replaceMemStackAndIncrPC]
-            have : pre.length + b.compile.length +
-              (compileOffset (pre.length + b.compile.length + 4) c1).length + 5 -
-              pre.length = b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length + 5 := by omega
-            simp +arith [this]
-            simp +arith [List.getElem_cons, List.getElem_append]
-            have : b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length + 5 - b.compile.length =
-              (compileOffset (pre.length + b.compile.length + 4) c1).length + 5 := by omega
-            simp +arith [this]
-        | EIfFalse hv => simp only [hx, Bool.true_eq_false] at hv
-      · apply Reachable.trans (Reachable.step rfl)
-        simp only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-          List.append_assoc, List.length_cons, Nat.add_lt_add_iff_left, Nat.lt_add_right_iff_pos,
-          Nat.lt_add_left_iff_pos, Nat.zero_lt_succ, ↓reduceDIte, Nat.le_add_right,
-          List.getElem_append_right, Nat.add_sub_cancel_left, Nat.le_refl, Nat.sub_self,
-          List.getElem_cons_zero, Bool.toValue, hx, replaceStackAndIncrPC, incrPC, stackPeek2,
-          beq_iff_eq, gt_iff_lt]
-        apply Reachable.trans (Reachable.step rfl)
-        simp +arith only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-          List.length_cons, ↓reduceDIte, List.getElem_append_right, replaceStackAndIncrPC, incrPC,
-          stackPeek2, Nat.zero_add, Nat.le_add_left, Nat.sub_eq_zero_of_le, Nat.zero_mul,
-          beq_iff_eq, Nat.right_eq_add, Nat.add_eq_zero_iff, List.length_eq_zero_iff, reduceCtorEq,
-          and_false, ↓reduceIte, gt_iff_lt, Nat.lt_irrefl]
-        have : pre.length + b.compile.length + 1 - pre.length = b.compile.length + 1 := by omega
-        simp +arith only [this, Nat.le_add_right, List.getElem_append_right,
-          Nat.add_sub_cancel_left, List.getElem_cons_succ, List.getElem_cons_zero]
-        apply Reachable.trans (Reachable.step rfl)
-        simp +arith only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-          List.length_cons, ↓reduceDIte, List.getElem_append_right, replaceStackAndIncrPC, incrPC,
-          stackPeek2, beq_iff_eq, gt_iff_lt]
-        have : pre.length + b.compile.length + 2 - pre.length = b.compile.length + 2 := by omega
-        simp +arith only [this, Nat.le_add_right, List.getElem_append_right,
-          Nat.add_sub_cancel_left, List.getElem_cons_succ, List.getElem_cons_zero]
-        apply Reachable.trans (Reachable.step rfl)
-        simp +arith only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-          List.length_cons, ↓reduceDIte, List.getElem_append_right, replaceStackAndIncrPC, incrPC,
-          stackPeek2, beq_iff_eq, gt_iff_lt]
-        have : pre.length + b.compile.length + 3 - pre.length = b.compile.length + 3 := by omega
-        simp +arith only [this, Nat.le_add_right, List.getElem_append_right,
-          Nat.add_sub_cancel_left, List.getElem_cons_succ, List.getElem_cons_zero, stackPeek1]
-        cases h with
-        | EIfTrue hv => contradiction
-        | EIfFalse hv c' =>
-          convert Reachable.trans (ih2 σ σ' stack _ _ c') _ using 1
-          · rw [← List.singleton_append]
-            nth_rewrite 2 [←List.singleton_append]
-            nth_rewrite 3 [←List.singleton_append]
-            nth_rewrite 4 [←List.singleton_append]
-            nth_rewrite 5 [←List.singleton_append]
-            nth_rewrite 6 [←List.singleton_append]
-            simp only [← List.append_assoc]
-            have : 6 = ([PUSH (pre.length + b.compile.length + 4)] ++ [JUMPI] ++
-                      [PUSH
-                          (pre.length + b.compile.length +
-                              (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                            6)] ++
-                    [JUMP] ++
-                [PUSH
-                    (pre.length + b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                        (compileOffset
-                            (pre.length + b.compile.length +
-                                (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                              6)
-                            c2).length +
-                      8)] ++
-              [JUMP]).length := by simp
-            nth_rewrite 5 [this]
-            nth_rewrite 3 [this]
-            have : (pre ++ b.compile ++ [PUSH (pre.length + b.compile.length + 4)] ++ [JUMPI] ++
-                      [PUSH
-                          (pre.length + b.compile.length +
-                              (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                            6)] ++
-                    [JUMP] ++
-                  compileOffset (pre.length + b.compile.length + 4) c1 ++
-                [PUSH
-                    (pre.length + b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                        (compileOffset
-                            (pre.length + b.compile.length +
-                                (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                              6)
-                            c2).length +
-                      8)] ++
-              [JUMP]).length = pre.length + b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                ([PUSH (pre.length + b.compile.length + 4)] ++ [JUMPI] ++
-                          [PUSH
-                              (pre.length + b.compile.length +
-                                  (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                                6)] ++
-                        [JUMP] ++
-                      [PUSH
-                          (pre.length + b.compile.length +
-                                (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                              (compileOffset
-                                  (pre.length + b.compile.length +
-                                      (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                                    6)
-                                  c2).length +
-                            8)] ++
-                    [JUMP]).length := by grind
-            rw [←this]
-          · apply Reachable.trans (Reachable.step rfl)
-            simp only [step, Except.instMonad, Except.bind, fetchInstr, List.append_assoc,
-              List.cons_append, List.nil_append, List.length_append, List.length_cons,
-              List.length_nil, Nat.zero_add, Nat.reduceAdd, Nat.add_lt_add_iff_left,
-              Nat.add_lt_add_iff_right, Nat.lt_add_right_iff_pos, Nat.lt_add_left_iff_pos,
-              Nat.zero_lt_succ, ↓reduceDIte, Nat.le_add_right, List.getElem_append_right,
-              Nat.add_sub_cancel_left, List.getElem_cons_succ, Nat.le_refl, Nat.sub_self,
-              List.getElem_cons_zero, replaceStackAndIncrPC, incrPC, stackPeek2, beq_iff_eq,
-              gt_iff_lt]
-            apply Reachable.step
-            simp +arith [step, fetchInstr, replaceStackAndIncrPC, incrPC, stackPeek2, stackPeek1, replaceMemStackAndIncrPC]
-            have : pre.length + b.compile.length +
-              (compileOffset (pre.length + b.compile.length + 4) c1).length +
-            (compileOffset
-                (pre.length + b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length + 6)
-                c2).length + 7 - pre.length = b.compile.length +
-              (compileOffset (pre.length + b.compile.length + 4) c1).length +
-            (compileOffset
-                (pre.length + b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length + 6)
-                c2).length + 7 := by omega
-            simp only [this]
-            simp +arith [List.getElem_cons, List.getElem_append]
-            have : b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                (compileOffset
-                    (pre.length + b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length + 6)
-                    c2).length + 7 -
-              b.compile.length = (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                (compileOffset
-                    (pre.length + b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length + 6)
-                    c2).length + 7 := by omega
-            simp +arith [this]
-            have : (compileOffset (pre.length + b.compile.length + 4) c1).length +
-                (compileOffset
-                    (pre.length + b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length + 6)
-                    c2).length + 3 -
-              (compileOffset (pre.length + b.compile.length + 4) c1).length = (compileOffset
-                    (pre.length + b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c1).length + 6)
-                    c2).length + 3 := by omega
-            simp +arith [this]
-    | CWhile b c ih =>
-      simp only [compileOffset, List.append_assoc, List.cons_append, List.nil_append, List.length_append, List.length_cons,
-        List.length_nil, Nat.zero_add, Nat.reduceAdd]
-      apply Reachable.trans (BExp.compileCorrectAux b)
-      generalize eq : ⟨{ while ↑b do ↑c od }⟩ = loop at h
-      induction h with
-      | EWhileFalse hx =>
-          cases eq
-          simp only [Bool.toValue, hx, List.length_append]
-          apply Reachable.trans (Reachable.step rfl)
-          simp only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-            List.length_cons, Nat.add_lt_add_iff_left, Nat.lt_add_right_iff_pos,
-            Nat.lt_add_left_iff_pos, Nat.zero_lt_succ, ↓reduceDIte, Nat.le_add_right,
-            List.getElem_append_right, Nat.add_sub_cancel_left, Nat.le_refl, Nat.sub_self,
-            List.getElem_cons_zero, replaceStackAndIncrPC, incrPC, stackPeek2, beq_iff_eq,
-            gt_iff_lt]
-          apply Reachable.trans (Reachable.step rfl)
-          simp +arith only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-            List.length_cons, ↓reduceDIte, List.getElem_append_right, replaceStackAndIncrPC, incrPC,
-            stackPeek2, Nat.zero_add, Nat.le_add_left, Nat.sub_eq_zero_of_le, Nat.zero_mul,
-            beq_iff_eq, Nat.right_eq_add, Nat.add_eq_zero_iff, List.length_eq_zero_iff,
-            reduceCtorEq, and_false, ↓reduceIte, gt_iff_lt, Nat.lt_irrefl]
-          have : pre.length + b.compile.length + 1 - pre.length = b.compile.length + 1 := by omega
-          simp only [this, Nat.le_add_right, List.getElem_append_right, Nat.add_sub_cancel_left,
-            List.getElem_cons_succ, List.getElem_cons_zero]
-          apply Reachable.trans (Reachable.step rfl)
-          simp +arith only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-            List.length_cons, ↓reduceDIte, List.getElem_append_right, replaceStackAndIncrPC, incrPC,
-            stackPeek2, beq_iff_eq, gt_iff_lt]
-          have : pre.length + b.compile.length + 2 - pre.length = b.compile.length + 2 := by omega
-          simp only [this, Nat.le_add_right, List.getElem_append_right, Nat.add_sub_cancel_left,
-            List.getElem_cons_succ, List.getElem_cons_zero]
-          apply Reachable.step
-          simp +arith only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-            List.length_cons, ↓reduceDIte, List.getElem_append_right, replaceStackAndIncrPC, incrPC,
-            stackPeek1, stackPeek2, beq_iff_eq, Nat.add_eq_zero_iff, List.length_eq_zero_iff,
-            reduceCtorEq, and_false, ↓reduceIte, gt_iff_lt]
-          have : pre.length + b.compile.length + 3 - pre.length = b.compile.length + 3 := by omega
-          simp [this]
-      | EWhileTrue hx c' hn ihh1 ihh2 =>
-        cases eq
-        simp only [Bool.toValue, hx, List.length_append]
-        apply Reachable.trans (Reachable.step rfl)
-        simp only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append, List.length_cons,
-          Nat.add_lt_add_iff_left, Nat.lt_add_right_iff_pos, Nat.lt_add_left_iff_pos, Nat.zero_lt_succ, ↓reduceDIte,
-          Nat.le_add_right, List.getElem_append_right, Nat.add_sub_cancel_left, Nat.le_refl, Nat.sub_self,
-          List.getElem_cons_zero, replaceStackAndIncrPC, incrPC, stackPeek2, beq_iff_eq, gt_iff_lt]
-        apply Reachable.trans (Reachable.step rfl)
-        simp +arith only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-          List.length_cons, ↓reduceDIte, List.getElem_append_right, replaceStackAndIncrPC, incrPC,
-          stackPeek2, Nat.le_add_left, Nat.sub_eq_zero_of_le, Nat.one_mul, beq_iff_eq,
-          Nat.right_eq_add, Nat.add_eq_zero_iff, List.length_eq_zero_iff, reduceCtorEq, and_false,
-          ↓reduceIte, gt_iff_lt, Nat.lt_add_one]
-        have : pre.length + b.compile.length + 1 - pre.length = b.compile.length + 1 := by omega
-        simp only [this, Nat.le_add_right, List.getElem_append_right, Nat.add_sub_cancel_left,
-          List.getElem_cons_succ, List.getElem_cons_zero]
-        convert Reachable.trans (ih _ _ _ _ _ c') _ using 1
-        · rw [←List.append_assoc]
-          rw [←List.singleton_append]
-          nth_rewrite 2 [←List.singleton_append]
-          nth_rewrite 3 [←List.singleton_append]
-          nth_rewrite 4 [←List.singleton_append]
-          have : 4 = ([PUSH (pre.length + b.compile.length + 4)] ++ [JUMPI] ++
-              [PUSH
-                  (pre.length + b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c).length +
-                    6)] ++
-            [JUMP]).length := by simp
-          nth_rewrite 3 [this]
-          nth_rewrite 5 [this]
-          repeat rw [←List.length_append]
-          repeat rw [←List.append_assoc]
-        · simp +arith only [List.length_append, List.append_assoc, List.cons_append,
-          List.nil_append, List.length_cons, List.length_nil, Nat.zero_add, Nat.reduceAdd]
-          apply Reachable.trans (Reachable.step rfl)
-          simp +arith only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-            List.length_cons, ↓reduceDIte, List.getElem_append_right, replaceStackAndIncrPC, incrPC,
-            stackPeek2, beq_iff_eq, gt_iff_lt]
-          have s1: ∀n, pre.length + b.compile.length +
-            (compileOffset (pre.length + b.compile.length + 4) c).length + n - pre.length
-              = b.compile.length +
-            (compileOffset (pre.length + b.compile.length + 4) c).length + n := by omega
-          simp +arith only [s1, List.getElem_append_right]
-          have s2 : ∀n, b.compile.length + (compileOffset (pre.length + b.compile.length + 4) c).length + n -
-            b.compile.length = (compileOffset (pre.length + b.compile.length + 4) c).length + n := by omega
-          simp +arith only [s2, List.getElem_cons_succ, Nat.le_refl, List.getElem_append_right,
-            Nat.sub_self, List.getElem_cons_zero]
-          apply Reachable.trans (Reachable.step rfl)
-          simp +arith only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
-            List.length_cons, ↓reduceDIte, List.getElem_append_right, replaceStackAndIncrPC, incrPC,
-            stackPeek1, stackPeek2, beq_iff_eq, List.length_eq_zero_iff, gt_iff_lt]
-          simp +arith only [s1, List.getElem_append_right]
-          simp +arith only [s2, List.getElem_cons_succ, Nat.le_add_right, List.getElem_append_right,
-            Nat.add_sub_cancel_left, List.getElem_cons_zero]
-          apply Reachable.trans (BExp.compileCorrectAux b)
-          simp +arith only [Bool.toValue, List.length_append, forall_const] at ihh2
-          simp only [Bool.toValue, List.length_append]
-          exact ihh2
-      | _ => contradiction
+      apply Reachable.trans
+      · apply BExp.compileCorrectAux
+      · apply Reachable.trans
+        · apply Reachable.step
+          simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC]
+          rfl
+        · apply Reachable.trans
+          · apply Reachable.step
+            simp only [step, Except.instMonad, Except.bind, fetchInstr, Nat.add_assoc,
+              List.length_append, List.length_cons, Nat.reduceAdd, Nat.add_lt_add_iff_left,
+              Nat.le_add_right, List.getElem_append_right, Nat.add_sub_cancel_left,
+              List.getElem_cons_succ, List.getElem_cons_zero, dite_eq_ite, replaceStackAndIncrPC,
+              incrPC, beq_iff_eq, gt_iff_lt]
+            simp only [← Nat.add_assoc, Nat.lt_add_left_iff_pos, Nat.zero_lt_succ, ↓reduceIte,
+              stackPeek2, htrue, Nat.lt_add_one]
+            rfl
+          · apply Reachable.trans
+            · specialize ih1 (pre ++ b.compile ++ [PUSH (pre.length + b.compile.length + 4),
+              JUMPI, PUSH (pre.length + b.compile.length + (Com.compileOffset (pre.length + b.compile.length + 4) c).length + 6), JUMP]) (PUSH pre.length :: JUMP :: suf)
+              simp_all only [List.append_assoc, List.length_append, List.length_cons, List.length_nil, Nat.zero_add,
+                Nat.reduceAdd, List.cons_append, List.nil_append]
+              exact ih1
+            · clear ih1
+              simp only [Nat.add_assoc, Nat.reduceAdd]
+              apply Reachable.trans
+              · apply Reachable.step
+                simp only [step, Except.instMonad, Except.bind, fetchInstr, List.length_append,
+                  List.length_cons, Nat.add_assoc, Nat.reduceAdd, Nat.add_lt_add_iff_left,
+                  Nat.lt_add_left_iff_pos, Nat.zero_lt_succ, ↓reduceDIte, Nat.le_add_right,
+                  List.getElem_append_right, Nat.add_sub_cancel_left, List.getElem_cons_succ,
+                  Nat.le_refl, Nat.sub_self, List.getElem_cons_zero, replaceStackAndIncrPC, incrPC,
+                  beq_iff_eq, gt_iff_lt]
+                rfl
+              · apply Reachable.trans
+                · apply Reachable.step
+                  simp [step, fetchInstr, Except.instMonad, Except.bind, Nat.add_assoc, stackPeek1]
+                  rfl
+                · simp only [Com.compileOffset, Nat.add_assoc, List.append_assoc, List.cons_append,
+                  List.nil_append, List.length_append, List.length_cons, List.length_nil,
+                  Nat.zero_add, Nat.reduceAdd] at ih2
+                  apply ih2
+  | EWhileFalse hfalse =>
+      rename_i c b σ
+      apply Reachable.trans
+      · simp only [Com.compileOffset, List.append_assoc, List.cons_append, List.nil_append]
+        apply BExp.compileCorrectAux
+      · apply Reachable.trans
+        · apply Reachable.step
+          simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC]
+          rfl
+        · apply Reachable.trans
+          · apply Reachable.step
+            simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC, Nat.add_assoc]
+            simp [←Nat.add_assoc, hfalse]
+            rfl
+          · apply Reachable.trans
+            · apply Reachable.step
+              simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC, Nat.add_assoc]
+              simp [←Nat.add_assoc]
+              rfl
+            · apply Reachable.step
+              simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC, Nat.add_assoc]
+              simp [←Nat.add_assoc, Com.compileOffset, stackPeek1]
+  | EIfTrue htrue h ih =>
+      rename_i σ c₁ σ' b c₂
+      simp only [Com.compileOffset, Nat.add_assoc, List.append_assoc, List.cons_append,
+        List.nil_append, List.length_append, List.length_cons, List.length_nil, Nat.zero_add,
+        Nat.reduceAdd]
+      apply Reachable.trans
+      · apply BExp.compileCorrectAux
+      · apply Reachable.trans
+        · apply Reachable.step
+          simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC]
+          rfl
+        · apply Reachable.trans
+          · apply Reachable.step
+            simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC, Nat.add_assoc]
+            simp [←Nat.add_assoc, htrue]
+            rfl
+          · simp only [Nat.add_assoc, stackPeek2]
+            apply Reachable.trans
+            · specialize ih (pre ++ b.compile ++ [PUSH (pre.length + (b.compile.length + 4)),
+              JUMPI, PUSH (pre.length + (b.compile.length + ((Com.compileOffset (pre.length + (b.compile.length + 4)) c₁).length + 6))), JUMP])
+              aesop
+            · clear ih
+              apply Reachable.trans
+              · apply Reachable.step
+                simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC]
+                rfl
+              · apply Reachable.step
+                simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC, Nat.add_assoc]
+                simp [←Nat.add_assoc, stackPeek1]
+  | EIfFalse hfalse h ih =>
+      rename_i σ c₂ σ' b c₁
+      simp only [Com.compileOffset, Nat.add_assoc, List.append_assoc, List.cons_append,
+        List.nil_append, List.length_append, List.length_cons, List.length_nil, Nat.zero_add,
+        Nat.reduceAdd]
+      apply Reachable.trans
+      · apply BExp.compileCorrectAux
+      · apply Reachable.trans
+        · apply Reachable.step
+          simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC]
+          rfl
+        · apply Reachable.trans
+          · apply Reachable.step
+            simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC, Nat.add_assoc]
+            simp [←Nat.add_assoc, hfalse]
+            rfl
+          · simp only [Nat.add_assoc]
+            apply Reachable.trans
+            · apply Reachable.step
+              simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC]
+              rfl
+            · apply Reachable.trans
+              · apply Reachable.step
+                simp [step, fetchInstr, Except.instMonad, Except.bind, Nat.add_assoc]
+                simp [←Nat.add_assoc]
+                rfl
+              · apply Reachable.trans
+                · simp [Nat.add_assoc, stackPeek1]
+                  specialize ih <|
+                    pre ++ b.compile ++
+                      [PUSH (pre.length + (b.compile.length + 4)), JUMPI, PUSH (pre.length +
+              (b.compile.length + ((Com.compileOffset (pre.length + (b.compile.length + 4)) c₁).length + 6))), JUMP] ++
+                    (Com.compileOffset (pre.length + (b.compile.length + 4)) c₁) ++
+                    [PUSH (pre.length +
+                    (b.compile.length +
+                      ((Com.compileOffset (pre.length + (b.compile.length + 4)) c₁).length +
+                        ((Com.compileOffset
+                              (pre.length +
+                                (b.compile.length +
+                                  ((Com.compileOffset (pre.length + (b.compile.length + 4)) c₁).length + 6)))
+                              c₂).length +
+                          8)))), JUMP]
+                  aesop
+                · clear ih
+                  apply Reachable.trans
+                  · apply Reachable.step
+                    simp [step, fetchInstr, Except.instMonad, Except.bind, replaceStackAndIncrPC, incrPC]
+                    rfl
+                  · apply Reachable.step
+                    simp only [step, Except.instMonad, Except.bind, fetchInstr, Nat.add_assoc,
+                      Nat.reduceAdd, List.length_append, List.length_cons, Nat.add_lt_add_iff_left,
+                      Nat.lt_add_left_iff_pos, Nat.zero_lt_succ, ↓reduceDIte, Nat.le_add_right,
+                      List.getElem_append_right, Nat.add_sub_cancel_left, beq_iff_eq, gt_iff_lt]
+                    simp only [← Nat.add_assoc, List.getElem_cons_succ]
+                    simp [Nat.add_assoc, stackPeek1]
 
 lemma Com.compileCorrectAux2 (pgm σ σ' stack) (h : σ =[pgm]=> σ') :
   Reachable
