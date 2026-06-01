@@ -32,44 +32,8 @@ lemma isOOFLemma {st} : ¬ Reachable st (.error .OutOfFuel) := by
   induction h with
   | @step μ _ h =>
     cases eq
-    simp [step] at h
-    by_cases hx : μ.pc < μ.code.length
-    · simp [hx] at h
-      cases hv : μ.code[μ.pc] with
-      | PUSH x => simp [hv, Bind.bind, Except.bind] at h
-      | LOAD x => simp [hv, Bind.bind, Except.bind] at h
-      | STORE x =>
-        simp [hv, Bind.bind, Except.bind] at h
-        cases μ.stack <;> aesop
-      | ADD =>
-        simp [hv, Bind.bind, Except.bind] at h
-        aesop
-      | SUB =>
-        simp [hv, Bind.bind, Except.bind] at h
-        aesop
-      | MUL =>
-        simp [hv, Bind.bind, Except.bind] at h
-        aesop
-      | EQ =>
-        simp [hv, Bind.bind, Except.bind] at h
-        aesop
-      | LE =>
-        simp [hv, Bind.bind, Except.bind] at h
-        aesop
-      | ISZERO =>
-        simp [hv, Bind.bind, Except.bind] at h
-        aesop
-      | JUMP =>
-        simp [hv, Bind.bind, Except.bind] at h
-        aesop
-      | JUMPI =>
-        simp [hv, Bind.bind, Except.bind] at h
-        aesop
-      | STOP =>
-        simp [hv, Bind.bind, Except.bind] at h
-      | NOP =>
-        simp [hv, Bind.bind, Except.bind] at h
-    · simp [hx, Bind.bind, Except.bind] at h
+    simp [step, Bind.bind, Except.bind] at h
+    aesop
   | trans s1 s2 ih1 ih2 =>
     cases eq
     simp only [imp_false, not_true_eq_false] at ih2
