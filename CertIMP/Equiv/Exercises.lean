@@ -214,7 +214,7 @@ theorem assign_aequiv
 
 theorem seq_assoc : ⟨{ {↑c₁ ; ↑c₂} ; ↑c₃ }⟩ ≃ ⟨{ ↑c₁ ; {↑c₂ ; ↑c₃} }⟩ := by
   -- FILL IN HERE (optional: PR will pass without it)
-  intros σ σ'
+  intro σ σ'
   apply Iff.intro
   · intro h
     cases h with
@@ -253,7 +253,6 @@ theorem equiv_symm : c₁ ≃ c₂ → c₂ ≃ c₁ := by
 
 theorem equiv_congr_asgn {a₁ a₂ : AExp} (h : a₁ ≃ a₂) :
   ⟨{ ↑x = ↑a₁ }⟩ ≃ ⟨{ ↑x = ↑a₂ }⟩ := by
-  -- FILL IN HERE (optional: PR will pass without it)
   intros σ σ'
   apply Iff.intro
   · intro h1
@@ -294,6 +293,7 @@ theorem equiv_congr_seqL (h : c₁ ≃ c₁') :
         exact h1
       · exact h2
 
+
 theorem equiv_congr_seqR (h : c₂ ≃ c₂') :
   ⟨{ ↑c₁; ↑c₂ }⟩ ≃ ⟨{ ↑c₁; ↑c₂' }⟩ := by
   intros σ σ'
@@ -322,25 +322,21 @@ theorem bequiv_congr_if (h : b ≃ b') :
     cases h1 with
     | EIfTrue hb hc =>
       apply EIfTrue
-      · rw [← h]
-        exact hb
+      · rw [← h]; exact hb
       · exact hc
     | EIfFalse hb hc =>
       apply EIfFalse
-      · rw [← h]
-        exact hb
+      · rw [← h]; exact hb
       · exact hc
   · intro h1
     cases h1 with
     | EIfTrue hb hc =>
       apply EIfTrue
-      · rw [h]
-        exact hb
+      · rw [h]; exact hb
       · exact hc
     | EIfFalse hb hc =>
       apply EIfFalse
-      · rw [h]
-        exact hb
+      · rw [h]; exact hb
       · exact hc
 
 theorem equiv_congr_if (h₁ : c₁ ≃ c₁') (h₂ : c₂ ≃ c₂') :
@@ -353,25 +349,22 @@ theorem equiv_congr_if (h₁ : c₁ ≃ c₁') (h₂ : c₂ ≃ c₂') :
     | EIfTrue hb hc =>
       apply EIfTrue
       · exact hb
-      · rw [← h₁]
-        exact hc
+      · rw [← h₁]; exact hc
     | EIfFalse hb hc =>
       apply EIfFalse
       · exact hb
-      · rw [← h₂]
-        exact hc
+      · rw [← h₂]; exact hc
   · intro h1
     cases h1 with
     | EIfTrue hb hc =>
       apply EIfTrue
       · exact hb
-      · rw [h₁]
-        exact hc
+      · rw [h₁]; exact hc
     | EIfFalse hb hc =>
       apply EIfFalse
       · exact hb
-      · rw [h₂]
-        exact hc
+      · rw [h₂]; exact hc
+
 
 theorem bequiv_congr_while (h : b ≃ b') :
   ⟨{ while ↑b do ↑c od }⟩ ≃ ⟨{ while ↑b' do ↑c od }⟩ := by
