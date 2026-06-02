@@ -124,52 +124,14 @@ theorem fold_constants_com_sound : Com.fold_constants.sound := by
   | CWhile b c ih  =>
       -- FILL IN HERE
       -- (hint: think about the lemmas you proved previously about `while` commands)
-      apply Iff.intro
-      · intro h
-        unfold Com.fold_constants
-        cases h
-        · next h₁ =>
-          split
-          · next habs =>
-            rw [fold_constants_bexp_sound, habs, BExp.eval] at h₁
-            contradiction
-          · apply ESkip
-          · apply EWhileFalse
-            rw [←fold_constants_bexp_sound]
-            exact h₁
-        · next h₁ _ _ =>
-          split
-          · next h' _ heq =>
-            apply EWhileTrue _ ESkip
-            · exfalso
-              apply true_while_nonterm _ h'
-              intro
-              rw [fold_constants_bexp_sound, heq]
-            · simp only [BExp.eval]
-          · next habs =>
-            rw [fold_constants_bexp_sound, habs, BExp.eval] at h₁
-            contradiction
-          · next h' h'' _ _ _ =>
-            apply EWhileTrue _ h'
-            · rw [←bequiv_congr_while (fold_constants_bexp_sound _)]
-              exact h''
-            · rw [←fold_constants_bexp_sound, h₁]
-      · intro h
-        unfold Com.fold_constants at h
-        split at h
-        · next heq =>
-          exfalso
-          apply true_while_nonterm _ h
-          rw [← heq]
-          aesop
-        · next heq =>
-          cases h
-          rw [bequiv_congr_while (fold_constants_bexp_sound _), heq]
-          rw [false_while]
-          · exact ESkip
-          · aesop
-        · rw [bequiv_congr_while (fold_constants_bexp_sound _)]
-          exact h
+      -- different (and much shorter) structure: the guard folds to `b.fold_constants`,
+      -- and `b ≃ b.fold_constants`, so each branch is exactly one of our `while` lemmas.
+      have hb := fold_constants_bexp_sound b
+      unfold Com.fold_constants
+      cases hbf : b.fold_constants with
+      | BTrue  => rw [hbf] at hb; exact true_while hb _ _
+      | BFalse => rw [hbf] at hb; exact false_while hb _ _
+      | _      => rw [hbf] at hb; exact bequiv_congr_while hb _ _
 /-
 
 

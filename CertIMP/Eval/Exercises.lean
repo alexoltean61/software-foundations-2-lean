@@ -22,21 +22,13 @@ theorem ceval_example1 :
       · simp only [AExp.eval]
         grind
 
+
+
+
 theorem ceval_example2 :
   σ =[
     x = 0;
     y = 1;
     z = 2
-  ]=> σ["z"↦2]["y"↦1]["x"↦0] := by
-  apply ESeq
-  · apply EAsgn
-    · rfl
-    · rfl
-  · apply ESeq
-    · apply EAsgn
-      · rfl
-      · rfl
-    · apply EAsgn
-      · rfl
-      · simp only [AExp.eval]
-        grind
+  ]=> σ["z"↦2]["y"↦1]["x"↦0] :=
+  ESeq (EAsgn rfl rfl) (ESeq (EAsgn rfl rfl) (EAsgn rfl (by simp only [AExp.eval]; grind)))

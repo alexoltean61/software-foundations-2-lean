@@ -15,37 +15,25 @@ def wlp (c : Com) (Q : Assertion) : Assertion :=
   fun σ => ∀ σ', σ =[c]=> σ' → Q σ'
 
 lemma weakestPreSkip {w : Assertion} (h : isWeakestPre .CSkip Q w) :
-    w ->> Q := by
-  obtain ⟨parCorr, isWkst⟩ := h
-  intro σ h2
-  exact parCorr σ σ .ESkip h2
+    w ->> Q :=
+  -- different: term-mode, via the structure's `isPartialCorrect` field
+  fun σ h2 => h.isPartialCorrect σ σ .ESkip h2
 
 lemma weakestPreAsgn {w : Assertion} (h : isWeakestPre (.CAsgn x e) Q w) :
-    w ->> Q[e // x] := by
-  obtain ⟨parCorr, isWkst⟩ := h
-  intro σ h2
-  exact parCorr σ (σ[x ↦ AExp.eval σ e]) (.EAsgn rfl rfl) h2
+    w ->> Q[e // x] :=
+  -- different: term-mode, via the structure's `isPartialCorrect` field
+  fun σ h2 => h.isPartialCorrect σ (σ[x ↦ AExp.eval σ e]) (.EAsgn rfl rfl) h2
 
-theorem wlpIsWp {c : Com} {Q : Assertion} : isWeakestPre c Q (wlp c Q) := by
-  apply isWeakestPre.mk
-  · intro σ σ' h1 h2
-    simp only [wlp] at h2
-    apply h2
-    assumption
-  · intro P' h1 σ h2
-    simp only [wlp]
-    intros
-    apply h1
-    repeat assumption
+theorem wlpIsWp {c : Com} {Q : Assertion} : isWeakestPre c Q (wlp c Q) :=
+  -- different: build the structure directly with term-mode fields
+  ⟨fun _ σ' h1 h2 => h2 σ' h1,
+   fun {_} h1 σ h2 σ' h3 => h1 σ σ' h3 h2⟩
 
 def Completeness :
   ⊨ ⦃ P ⦄ c ⦃ Q ⦄ → ⊢ ⦃ P ⦄ c ⦃ Q ⦄ := by
+  -- different: strengthen straight through `wlpIsWp.isWeakest` without unpacking
   intro h
-  have preWp : isWeakestPre c Q (wlp c Q) := wlpIsWp
-  obtain ⟨isPre, isWeakest⟩ := preWp
-  specialize isWeakest h
-  apply HPreStrengthen _ isWeakest
-  clear isWeakest isPre
+  apply HPreStrengthen _ (wlpIsWp.isWeakest h)
   cases c with
   | CSkip =>
       apply @HPreStrengthen Q

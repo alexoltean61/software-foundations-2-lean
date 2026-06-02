@@ -5,7 +5,8 @@ import Mathlib.Tactic.Linarith
 
 /- HELPERS -/
 lemma mul4Inj {k n : ℕ} : ((4 * k) = (4 * n)) → k = n := by
-  aesop
+  -- different: arithmetic decision procedure instead of `aesop`
+  omega
 
 lemma consecutiveSquares {k n : ℕ} :
   (k * k ≤ n * n) → ((k+1) * (k+1) > n * n) → (k * k = n * n) := by
@@ -38,8 +39,9 @@ def hoare_asgn_wrong : ∃ a,
     rfl
   · simp [State.init, Inhabited.default]
 
-lemma Assertion.impl_self : P ->> P := by
-verify_assertion
+lemma Assertion.impl_self : P ->> P :=
+  -- different: term-mode — implication reflexivity is just the identity
+  fun _ h => h
 
 def Hoare.HPreStrengthen : Proof P' c Q → (P ->> P') → Proof P c Q := by
   intro h1 h2

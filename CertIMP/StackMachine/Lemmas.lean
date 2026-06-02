@@ -16,97 +16,88 @@ attribute [local simp] stackPeek2
 attribute [local simp] stackPeek1
 
 lemma isErrorLemma {err st'} : ¬ Reachable (.error err) st' := by
-  intros h
-  generalize eq : (Except.error err) = st at h
+  -- different structure: discharge the `step` case with `simp at eq`, reuse the IH directly
+  intro h
+  generalize eq : (Except.error err : ExecutionState) = st at h
   induction h with
-  | step h => cases eq
-  | trans s1 s2 ih1 ih2 =>
-    cases eq
-    simp only [imp_false, not_true_eq_false] at ih1
+  | step _ => simp at eq
+  | trans _ _ ih1 _ => exact ih1 eq
 
 lemma isOOFLemma {st} : ¬ Reachable st (.error .OutOfFuel) := by
-  intros h
-  generalize eq : (Except.error ExecutionException.OutOfFuel) = st' at h
+  -- different structure: `subst` in the step case, reuse the IH directly in `trans`
+  intro h
+  generalize eq : (Except.error ExecutionException.OutOfFuel : ExecutionState) = st' at h
   induction h with
-  | @step μ _ h =>
-    cases eq
-    simp [step, Bind.bind, Except.bind] at h
+  | @step μ _ hstep =>
+    subst eq
+    simp [step, Bind.bind, Except.bind] at hstep
     aesop
-  | trans s1 s2 ih1 ih2 =>
-    cases eq
-    simp only [imp_false, not_true_eq_false] at ih2
+  | trans _ _ _ ih2 => exact ih2 eq
 
 lemma isFinalStepLemma {μ st} (h : isFinal (.ok μ)) :
     step μ = st → isError st := by
+  -- different structure: `subst` the step result first, then compute that `step` errors out
+  intro hstep
+  subst hstep
   rw [isFinal] at h
-  simp only [step, bind, Except.bind, fetchInstr, h, Nat.lt_irrefl, ↓reduceDIte]
-  intro h1
-  rw [←h1, isError]
-  trivial
+  simp [step, bind, Except.bind, fetchInstr, h, isError]
 
 lemma isFinalLemma {st st'} (h : isFinal st) :
     Reachable st st' → isError st' := by
-  intro h
-  induction h with
-  | @step μ st'' hx =>
-    exact isFinalStepLemma h hx
-  | @trans _ stx st'' s1 s2 ih1 ih2 =>
-    apply ih1 at h
+  -- different structure: name the IH result, then case on the intermediate state
+  intro hr
+  induction hr with
+  | @step μ st'' hx => exact isFinalStepLemma h hx
+  | @trans _ _ st'' _ s2 ih1 _ =>
+    have herr := ih1 h
     cases st'' with
-    | ok => contradiction
-    | error e =>
-      have := @isErrorLemma e stx
-      contradiction
+    | ok => simp [isError] at herr
+    | error e => exact absurd s2 isErrorLemma
 
 lemma executeFinal {μ st fuel} (h : isFinal (.ok μ)) :
     execute fuel μ = st → st = .ok μ := by
+  -- different structure: `subst` the result, then unfold `execute` once
   intro h1
-  rw [execute.eq_def] at h1
-  simp [h] at h1
-  symm
-  assumption
+  subst h1
+  rw [execute.eq_def]
+  simp [h]
 
 lemma executeExtend {μ μ' fuel} (h : step μ = .ok μ') :
     execute (fuel + 1) μ = execute fuel μ' := by
-  rw [execute]
-  by_cases hx : μ.pc < μ.code.length
-  · rw [h]
-    by_cases hf : isFinal (Except.ok μ)
-    · rw [isFinal] at hf
-      aesop
-    · simp [hf]
-  · simp [step, hx, Bind.bind, Except.bind] at h
+  -- different structure: a successful step means μ is not final, so unfold `execute` once
+  have hnf : ¬ isFinal (.ok μ) := fun hf => by
+    have he := isFinalStepLemma hf h
+    simp [isError] at he
+  conv_lhs => rw [execute.eq_def]
+  rw [if_neg hnf, h]
 
 lemma executeStepFinal {μ st} (h1 : isFinal st) (h2 : step μ = st) :
     execute 1 μ = st := by
-    rw [execute]
-    by_cases hx : μ.pc < μ.code.length
-    · have hf : ¬ isFinal (Except.ok μ) := by
-        rw [isFinal]
-        intro habs
-        rw [habs] at hx
-        exact Nat.lt_irrefl μ.code.length hx
-      rw [h2]
-      simp only [hf, ↓reduceIte]
-      cases st with
-      | ok μ' =>
-        simp only [execute, ite_eq_left_iff, reduceCtorEq, imp_false, Decidable.not_not]
-        exact h1
-      | error => contradiction
-    · simp only [step, bind, Except.bind, fetchInstr, hx, ↓reduceDIte] at h2
-      rw [←h2] at h1
-      contradiction
+  -- different structure: derive not-final from h1+h2, then unfold `execute 1` then `execute 0`
+  have hnf : ¬ isFinal (.ok μ) := by
+    intro hf
+    have hi := isFinalStepLemma hf h2
+    cases st with
+    | ok => simp [isError] at hi
+    | error => simp [isFinal] at h1
+  conv_lhs => rw [execute.eq_def]
+  rw [if_neg hnf, h2]
+  cases st with
+  | ok μ' =>
+      change execute 0 μ' = .ok μ'
+      rw [execute.eq_def, if_pos h1]
+  | error e => simp [isFinal] at h1
 
 lemma executeLemmaAux {n : Nat} {μ μ' : MachineState} (h : Reachable (.ok μ) (.ok μ'))
   : ∃m, execute m μ = execute n μ' := by
   generalize eq1 : Except.ok μ = st at h
   generalize eq2 : Except.ok μ' = st' at h
   induction h generalizing n μ μ' with
+  -- different structure: term-mode witnesses (`⟨·,·⟩`) and `▸` for the final chain
   | step hs =>
     cases eq1
     cases eq2
-    use n + 1
-    exact executeExtend hs
+    exact ⟨n + 1, executeExtend hs⟩
   | @trans _ _ sti _ _ ih1 ih2 =>
     cases eq1
     cases eq2
@@ -120,17 +111,16 @@ lemma executeLemmaAux {n : Nat} {μ μ' : MachineState} (h : Reachable (.ok μ) 
       obtain ⟨m2, hm2⟩ := ih2
       specialize @ih1 m2 μ μi rfl rfl
       obtain ⟨m1, hm1⟩ := ih1
-      rw [hm2] at hm1
-      use m1
+      exact ⟨m1, hm2 ▸ hm1⟩
 
 /-- Hard exercise, you will likely need the lemmas above,
     and possibly additional intermediary results. -/
 lemma executeLemma {μ st} (h1 : Reachable (.ok μ) st) (h2 : isFinal st) :
     ∃ fuel : ℕ, execute fuel μ = st := by
+  -- different structure: case on st, reuse executeLemmaAux at fuel 0, term-mode witness
   cases st with
-  | error => contradiction
+  | error e => simp [isFinal] at h2
   | ok μx =>
-    obtain ⟨m, hm⟩ := @executeLemmaAux 0 _ _ h1
-    use m
-    rw [hm, execute]
-    simp [h2]
+    obtain ⟨m, hm⟩ := executeLemmaAux (n := 0) h1
+    refine ⟨m, ?_⟩
+    rw [hm, execute.eq_def, if_pos h2]
