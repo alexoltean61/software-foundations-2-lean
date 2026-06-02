@@ -63,13 +63,16 @@ def swap {n m : ℕ} :
           x = x - y;
       }⟩
     ⦃ x = m ∧ y = n ⦄ := by
-    apply HSeq
-    · apply HSeq
-      · apply HAsgn
-      · apply HAsgn
-    · apply HPreStrengthen
-      · apply HAsgn
-      · verify_assertion
+  apply HSeq
+  · apply HSeq
+    · apply HAsgn
+    · apply HAsgn
+  · apply HPreStrengthen
+    · apply HAsgn
+    · verify_assertion
+
+
+
 
 def reduce_to_zero :
   ⊢ ⦃ ⊤ ⦄
@@ -86,6 +89,8 @@ def reduce_to_zero :
     · verify_assertion
   · verify_assertion
   · verify_assertion
+
+
 
 def if_minus_plus_dec :
   ⊢ ⦃ ⊤ ⦄
@@ -104,6 +109,8 @@ def if_minus_plus_dec :
   · apply HPreStrengthen
     · apply HAsgn
     · verify_assertion
+
+
 
 def subtract_slowly {m p : ℕ} :
   ⊢ ⦃ ⊤ ⦄
@@ -188,6 +195,8 @@ def div_mod_dec {a b : ℕ} :
     · apply HAsgn
     · verify_assertion
     · verify_assertion
+
+
 
 def fib : ℕ → ℕ
   | 0 => 1
