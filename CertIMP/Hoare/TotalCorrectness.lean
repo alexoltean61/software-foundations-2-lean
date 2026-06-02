@@ -83,23 +83,22 @@ lemma wpLemma {pgm : Com} :
           exists σ''
         | _ => contradiction
   | CSkip =>
+      -- different: `constructor` + term-mode existential witnesses
       unfold wp
-      apply Iff.intro
+      constructor
       · intro h
-        exists σ
-        apply And.intro .ESkip h
-      · intro ⟨_, h1, _⟩
+        exact ⟨σ, .ESkip, h⟩
+      · rintro ⟨_, h1, h⟩
         cases h1
-        assumption
+        exact h
   | CAsgn x e =>
+      -- different: `constructor` + term-mode existential witnesses
       unfold wp
-      apply Iff.intro
+      constructor
       · intro h
         unfold Assertion.subst at h
-        exists σ[x ↦ AExp.eval σ e]
-        apply And.intro _ h
-        apply EAsgn rfl rfl
-      · intro ⟨_, h, hq⟩
+        exact ⟨σ[x ↦ AExp.eval σ e], EAsgn rfl rfl, h⟩
+      · rintro ⟨_, h, hq⟩
         cases h
         aesop
   | CSeq c₁ c₂ ih₁ ih₂ =>
@@ -145,13 +144,9 @@ lemma wpLemma {pgm : Com} :
         cases h₁ <;> aesop
 
 lemma wpIsWeakest {pgm : Com} :
-  isWeakestPre pgm Q (wp pgm Q) := by
-  apply isWeakestPre.mk
-  · intro σ
-    simp [wpLemma]
-  · intro P' h1 σ h2
-    obtain ⟨σ', h3, h4⟩ := h1 σ h2
-    rw [wpLemma]
-    exists σ'
+  isWeakestPre pgm Q (wp pgm Q) :=
+  -- different: build the structure directly, threading `wpLemma` both ways
+  ⟨fun _ h => wpLemma.mp h,
+   fun {_} h1 σ h2 => wpLemma.mpr (h1 σ h2)⟩
 
 end Total
